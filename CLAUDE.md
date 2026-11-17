@@ -1,9 +1,9 @@
 # Halftime Show
 
-A browser extension (Manifest V3, WXT, TypeScript strict, Preact) that mutes the Hulu tab during ad breaks and covers the ad with a halftime show, then unmutes and clears it when the show returns. Read `docs/product-brief.md` and, for UI work, `docs/design.md` before changing code.
+A browser extension for Chrome and Firefox, with Safari coming in #21 (Manifest V3, WXT, TypeScript strict, Preact) that mutes the Hulu tab during ad breaks and covers the ad with a halftime show, then unmutes and clears it when the show returns. Read `docs/product-brief.md` and, for UI work, `docs/design.md` before changing code.
 
 - **Never block, skip, speed up or hide ads from Hulu**, and never touch Hulu's network traffic. Mute the tab and cover the picture only.
-- **Mute the tab, restore what was there.** A tab the viewer had muted stays muted after a break (`src/lib/mute-plan.ts`).
+- **Mute through `src/lib/mute.ts` only:** the tab mute where the browser has it, the video element otherwise (Safari, #21). **Restore what was there.** A tab the viewer had muted stays muted after a break (`src/lib/mute-plan.ts`).
 - **Everything Hulu-specific lives in `src/sites/hulu.ts`**, tested against recorded snapshots. More sites are one file each.
 - **No network calls, no analytics, no accounts, no remote code.** Permissions stay `tabs`, `storage` and `*.hulu.com`. Data ships in the extension; any question bank or word list carries its licence and credit.
 - **The overlay lives in a Shadow DOM** and mounts into the full-screen element when there is one. It never uses `Esc` (that leaves full screen) and stops keys reaching the player while open.
