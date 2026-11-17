@@ -7,6 +7,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
+// Stand-ins for what scripts/safari-app.sh and QA leave in the working tree: git-ignored, never in the source zip.
+for (const [dir, file] of [['safari', 'build/Halftime Show.app.txt'], ['qa-report', 'report.md']]) {
+  fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+  fs.writeFileSync(path.join(dir, file), 'local only');
+}
 const out = fs.mkdtempSync(path.join(os.tmpdir(), 'halftime-zip-'));
 // HALFTIME_RELEASE is left unset: the zip script must set it itself.
 execFileSync('npm', ['run', 'zip'], { env: { ...process.env, HALFTIME_RELEASE: '', HALFTIME_OUT_DIR: out }, stdio: 'pipe' });
@@ -42,4 +47,10 @@ test('the Firefox package has its add-on ID and says it collects no data', () =>
 
 test('the Chrome package carries no Firefox-only keys', () => {
   assert.equal(manifestOf(path.join(out, `halftime-show-${version}-chrome.zip`)).browser_specific_settings, undefined);
+});
+
+test('the source zip for Firefox Add-ons holds the source, and nothing local', () => {
+  const list = files(path.join(out, `halftime-show-${version}-sources.zip`));
+  for (const name of ['package.json', 'package-lock.json', 'wxt.config.ts', 'entrypoints/background.ts', 'src/sites/hulu.ts']) assert.ok(list.includes(name), `${name} is in it`);
+  assert.deepEqual(list.filter((f) => /^(safari|qa-report|\.output|node_modules)\/|\.zip$|(^|\/)\./.test(f)), []);
 });

@@ -19,6 +19,8 @@ const WATCH_TICK_MS = 30_000;
 // mutes and unmutes the tab, and the overlay covers the ad in between. Sound first, then the picture, both ways.
 export default defineContentScript({
   matches: ['*://*.hulu.com/*'],
+  // Don't announce this script to every script on the page with window.postMessage.
+  noScriptStartedPostMessage: true,
   main(ctx) {
     document.documentElement.dataset.halftimeShow = 'ready';
     const stopCapture = answerHuluCapture(document);
@@ -161,7 +163,21 @@ export default defineContentScript({
     };
     browser.runtime.onMessage.addListener(onMessage);
 
+    // Stopping mid break (the extension was reloaded, or a page script faked WXT's "newer copy started" event): give
+    // the sound back before going. Closing the port makes the background unmute too, should the message not land.
     ctx.onInvalidated(() => {
+      if (control.inBreak()) {
+        try {
+          browser.runtime.sendMessage({ type: BREAK_END, notAd: false } satisfies BreakEndMessage).catch(() => undefined);
+        } catch {
+          // The extension itself went away: its ports closed with it, and the background has already unmuted.
+        }
+      }
+      try {
+        port?.disconnect();
+      } catch {
+        // Already gone.
+      }
       detector.stop();
       stopCapture();
       stopDodged();

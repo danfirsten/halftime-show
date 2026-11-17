@@ -69,5 +69,8 @@ export default defineConfig({
       }
     },
   },
+  // The source zip Firefox Add-ons asks for: tracked source only, never the Mac app safari-app.sh leaves behind,
+  // QA screenshots or old zips (WXT would take every file that isn't a dotfile, git-ignored or not).
+  zip: { excludeSources: ['safari/**', 'qa-report/**', '**/*.zip', '.output/**'] },
   vite: () => ({ plugins: [preact()] }),
 });

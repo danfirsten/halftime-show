@@ -256,6 +256,20 @@ test('leaving the page mid-break gives the tab its sound back', async () => {
   });
 });
 
+test('a page script that stops the content script mid-break does not leave the tab muted', async () => {
+  await withExtension(async ({ context, worker, origin }) => {
+    const page = await openFixture(context, origin, { breaks: '1:60' });
+    const tabId = await tabIdOf(worker, page);
+    await waitMuted(worker, tabId, true);
+    const id = new URL(worker.url()).host;
+    // WXT's "a newer copy of this script started" event, which any script on the page can send.
+    await page.evaluate((name) => {
+      document.dispatchEvent(new CustomEvent(name, { detail: { contentScriptName: 'hulu', messageId: 'forged' } }));
+    }, `${id}:hulu:wxt:content-script-started`);
+    await waitMuted(worker, tabId, false);
+  });
+});
+
 test('the options page saves a detection snapshot from the player tab', async () => {
   await withExtension(async ({ context, worker, origin }) => {
     await openFixture(context, origin, { breaks: '0:30' });
