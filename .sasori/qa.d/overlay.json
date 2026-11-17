@@ -1,0 +1,38 @@
+{
+  "routes": [
+    "/overlay-stage?breaks=0:60"
+  ],
+  "interactions": [
+    {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs-tabs [data-show=\"trivia\"]",
+      "action": "click",
+      "label": "Switch to Quick trivia mid-break"
+    },
+    {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs-notad",
+      "action": "click",
+      "label": "Mark as not an ad: the clip closes"
+    }
+  ],
+  "motion": {
+    "moment": {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs",
+      "action": "load",
+      "label": "The clip opens over the ad"
+    },
+    "allow": [
+      ".hs-edge",
+      ".hs.is-closing"
+    ]
+  },
+  "routeFiles": {
+    "/overlay-stage?breaks=0:60": [
+      "src/overlay/",
+      "src/shows/",
+      "entrypoints/overlay-stage/"
+    ]
+  }
+}

@@ -17,6 +17,7 @@ test('a release build matches *.hulu.com only and ships no fixture', () => {
   assert.deepEqual(manifest.host_permissions, ['*://*.hulu.com/*']);
   assert.deepEqual([...manifest.permissions].sort(), ['storage', 'tabs']);
   assert.equal(fs.existsSync(path.join(out, 'chrome-mv3', 'fixture')), false);
+  assert.equal(fs.existsSync(path.join(out, 'chrome-mv3', 'overlay-stage.html')), false);
 });
 
 test('a default build also matches the local fixture, and nothing else is added', () => {
@@ -25,4 +26,5 @@ test('a default build also matches the local fixture, and nothing else is added'
   assert.deepEqual(manifest.content_scripts.flatMap((s) => s.matches), ['*://*.hulu.com/*', '*://localhost/fixture/*']);
   assert.deepEqual(manifest.host_permissions, ['*://*.hulu.com/*']);
   assert.ok(fs.existsSync(path.join(out, 'chrome-mv3', 'fixture', 'player.html')));
+  assert.ok(fs.existsSync(path.join(out, 'chrome-mv3', 'overlay-stage.html')));
 });
