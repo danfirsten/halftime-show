@@ -3,6 +3,7 @@
 // Same query params as the player (fixture/README.md), for example /overlay-stage.html?breaks=2:30.
 import { mountOverlay, type OverlayHandle } from '../../src/overlay';
 import type { ShowId } from '../../src/shows/types';
+import { shows } from '../../src/shows';
 
 declare global {
   interface Window {
@@ -40,6 +41,7 @@ const picks: ShowId[] = [];
 const stage = { picks, notAd: 0 } as unknown as NonNullable<Window['halftimeStage']>;
 let dismissed = false;
 const overlay = mountOverlay(video, {
+  shows,
   lastShow: (params.get('last') as ShowId | null) ?? undefined,
   dodged: { today: 870, week: 6730 },
   onPick: (id) => picks.push(id),

@@ -297,7 +297,7 @@ describe('the menu and the shows', () => {
   });
 
   it('places a placeholder show in the slot until the real ones land', () => {
-    mount();
+    mount({ shows: placeholderShows });
     open(60);
     key('2');
     expect($('.ph-name')!.textContent).toBe('Quick trivia');
