@@ -20,7 +20,7 @@
 
   /* type */
   --sans: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
   --text-display: clamp(56px, 11.6vw, 168px);
   --text-h2: clamp(44px, 5vw, 72px);
   --text-lede: clamp(18px, 1.55vw, 22px);
