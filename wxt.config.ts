@@ -4,7 +4,8 @@ import preact from '@preact/preset-vite';
 declare const process: { env: Record<string, string | undefined> }; // no @types/node here
 
 // Release builds (HALFTIME_RELEASE=1) match *.hulu.com only. Every other build also ships the stand-in
-// player (fixture/) and lets the content script run on it, so it can be tested without a Hulu account.
+// player (fixture/) and lets the content script run on it, so it can be tested without a Hulu account, plus the
+// overlay stage page that puts the overlay on that player.
 const release = process.env.HALFTIME_RELEASE === '1';
 const fixtureMatch = '*://localhost/fixture/*';
 
@@ -18,6 +19,11 @@ export default defineConfig({
     host_permissions: ['*://*.hulu.com/*'],
   },
   hooks: {
+    // The overlay stage (entrypoints/overlay-stage/) runs the overlay on the stand-in player: dev and test builds only.
+    'entrypoints:resolved': (_wxt, entrypoints) => {
+      if (!release) return;
+      for (const entry of entrypoints) if (entry.name === 'overlay-stage') entry.skipped = true;
+    },
     'build:manifestGenerated': (_wxt, manifest) => {
       if (release) return;
       for (const script of manifest.content_scripts ?? []) {

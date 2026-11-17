@@ -1,0 +1,25 @@
+/* The overlay's own tokens, on top of the system's (src/styles/tokens.css, loaded into the same shadow root).
+   Motion at app speed for the one moment, and the type steps, set in container units so the overlay reads the
+   same from a small window to a television (docs/design.md, Type and Motion). */
+:host {
+  --dur-open: 700ms;
+  --dur-settle: 900ms;
+  --dur-close: 480ms;
+  --dur-hold: 4s;
+  --dur-reduced: 150ms;
+
+  --clip-from: inset(15% round 32px);
+  --clip-to: inset(0);
+  --settle-from: scale(1.08);
+
+  --t-show: clamp(28px, 7cqi, 96px);
+  --t-title: clamp(20px, 3.4cqi, 48px);
+  --t-body: clamp(14px, 1.7cqi, 22px);
+  --t-clock: clamp(18px, 2.8cqi, 40px);
+  --t-label: clamp(11px, 1.15cqi, 15px);
+
+  --pad: clamp(16px, 3.2cqi, 48px);
+  --edge-in: clamp(6px, 0.9cqi, 12px);
+  --edge-w: 2px;
+  --target: 44px;
+}

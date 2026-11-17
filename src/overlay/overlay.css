@@ -1,0 +1,159 @@
+/* The overlay, inside its Shadow DOM. Tokens only: no colour, size of motion or font is named here.
+   Port of docs/design/style.html, "the overlay". */
+
+:host { all: initial; }
+.hs-root {
+  position: absolute; inset: 0; overflow: hidden; container: overlay / size; pointer-events: none;
+  font-family: var(--sans); color: var(--fg); font-size: var(--t-body); line-height: 1.45;
+  -webkit-font-smoothing: antialiased; text-align: left;
+}
+/* resets at zero specificity, so every rule below wins over them */
+:where(.hs-root) *, :where(.hs-root) *::before, :where(.hs-root) *::after { box-sizing: border-box; }
+:where(.hs-root) button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
+:where(.hs-root) :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+:where(.hs-root) p { margin: 0; }
+.num { font-variant-numeric: tabular-nums; }
+.lab { font-family: var(--mono); font-size: var(--t-label); letter-spacing: 0.04em; color: var(--muted); line-height: 1.3; text-transform: none; }
+kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; padding: 1px 6px; border: 1px solid currentColor; border-radius: 6px; opacity: 0.75; white-space: nowrap; }
+
+/* the cover: always ink, fully opaque, square */
+.hs { position: absolute; inset: 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: auto; outline: none; clip-path: var(--clip-to); }
+.hs.is-still { cursor: none; }
+.hs.is-still .m-row:hover:not(.is-default), .hs.is-still .hs-notad:hover { background: none; }
+.hs-in {
+  position: absolute; inset: 0; padding: calc(var(--pad) + var(--space-1));
+  display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(8px, 1.6cqb, 20px);
+}
+
+/* the moment: the clip opens over the ad, the content settles, and it closes back */
+.hs.is-open { animation: hs-clip-open var(--dur-open) var(--ease-inout) both, hs-fade-in var(--dur-base) var(--ease-out) both; }
+.hs.is-open .hs-in { animation: hs-settle var(--dur-settle) var(--ease-expo) both; }
+.hs.is-closing { animation: hs-clip-close var(--dur-close) var(--ease-inout) both, hs-fade-out var(--dur-base) var(--ease-out) calc(var(--dur-close) - var(--dur-base)) both; }
+@keyframes hs-clip-open { from { clip-path: var(--clip-from); } to { clip-path: var(--clip-to); } }
+@keyframes hs-clip-close { from { clip-path: var(--clip-to); } to { clip-path: var(--clip-from); } }
+@keyframes hs-settle { from { transform: var(--settle-from); } to { transform: none; } }
+@keyframes hs-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hs-fade-out { from { opacity: 1; } to { opacity: 0; } }
+
+/* the edge clock: 2 px round the edge, draining clockwise from the top-left */
+.hs-edge { position: absolute; inset: 0; pointer-events: none; }
+.hs-edge svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.hs-edge rect { fill: none; stroke-width: var(--edge-w); }
+.e-track { stroke: var(--rule); }
+.e-run { stroke: var(--fg); stroke-dasharray: 1000 1000; transition: stroke-dashoffset 1s linear; }
+.e-dots { stroke: var(--fg); stroke-dasharray: 0 9; stroke-linecap: round; }
+
+/* top: the wordmark and the scoreboard */
+.hs-top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+.hs-mark { display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 500; letter-spacing: -0.05em; font-size: var(--t-body); opacity: 0.6; line-height: 1; padding-top: var(--space-1); }
+.hs-mark .hoop { width: 1.15em; height: 1.15em; }
+.hs-score { text-align: right; display: grid; gap: 2px; justify-items: end; }
+.hs-clock { display: flex; align-items: baseline; gap: var(--space-2); }
+.hs-t { font-family: var(--mono); font-weight: 500; font-size: var(--t-clock); line-height: 1; letter-spacing: 0; }
+
+/* the stage, where the menu or the chosen show sits */
+.hs-stage { position: relative; min-height: 0; }
+.pane { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: hs-fade-in var(--dur-base) var(--ease-out) both; }
+
+/* the break-start menu */
+.m-head { margin-bottom: clamp(10px, 2cqb, 24px); font-size: var(--t-title); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; text-align: center; text-wrap: balance; }
+.m-first { text-wrap: pretty; margin: calc(-1 * var(--space-1)) 0 clamp(10px, 2cqb, 20px); color: var(--soft); text-align: center; max-width: 52ch; }
+.hs-menu { list-style: none; margin: 0; padding: 0; width: min(100%, 62cqi); display: grid; }
+.hs-menu li + li { border-top: 1px solid var(--rule); }
+.m-row {
+  width: 100%; display: grid; grid-template-columns: auto 2.2em minmax(0, 1fr) auto; align-items: center; gap: clamp(8px, 1.6cqi, 18px);
+  min-height: max(var(--target), 7.4cqb); padding: 0 clamp(8px, 1.4cqi, 16px); border-radius: var(--r-chip); text-align: left;
+  font-size: var(--t-body);
+  transition: background-color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out);
+}
+.m-row:hover { background: var(--fill); }
+.m-row .n { font-weight: 500; letter-spacing: -0.02em; }
+.m-row .d { font-family: var(--mono); font-size: var(--t-label); color: var(--muted); white-space: nowrap; }
+.m-row .g { display: grid; place-items: center; height: 1.4em; }
+.m-row .g svg { width: 100%; height: 1.2em; display: block; }
+.m-row .g .q { font-weight: 600; font-size: 1.15em; line-height: 1; }
+.m-row.is-default { background: var(--inv-bg); color: var(--inv-fg); }
+.m-row.is-default .d { color: var(--inv-fg); opacity: 0.7; }
+.m-row.is-default .k { border-color: var(--inv-fg); }
+.hs-menu li:has(.is-default) + li, .hs-menu li:has(+ li .is-default) { border-color: transparent; }
+.m-c { display: inline-block; animation: hs-fade-in var(--dur-quick) var(--ease-out) both; }
+
+.k { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font-family: var(--mono); font-size: var(--t-label); border: 1px solid var(--rule); flex: none; }
+
+/* the foot: the show tabs and Not an ad */
+.hs-foot { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); }
+.hs-tabs { display: flex; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+.hs-tabs button {
+  display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--target); padding: 0 var(--space-4) 0 6px;
+  border-radius: var(--r-pill); border: 1px solid var(--rule); font-size: var(--t-label); color: var(--soft); white-space: nowrap;
+  transition: border-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out);
+}
+.hs-tabs button:hover { border-color: var(--muted); color: var(--fg); }
+.hs-tabs button[aria-selected='true'] { border-color: var(--fg); color: var(--fg); }
+.hs-tabs button[aria-selected='true'] .k { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.hs-notad {
+  display: inline-flex; align-items: center; gap: 10px; min-height: var(--target); padding: 0 18px; border-radius: var(--r-pill);
+  border: 1px solid var(--fg); font-size: var(--t-label); font-weight: 500; white-space: nowrap; flex: none;
+  transition: transform var(--dur-quick) var(--ease-out), background-color var(--dur-quick) var(--ease-out);
+}
+.hs-notad:hover { background: var(--fill); }
+.hs-tabs button:active, .hs-notad:active, .m-row:active { transform: scale(0.97); }
+
+/* the back note: the one thing that floats, over the show once it is back */
+.hs-back {
+  position: absolute; left: clamp(10px, 2cqi, 24px); bottom: clamp(10px, 2.4cqb, 28px);
+  display: flex; align-items: center; gap: var(--space-3); padding: 10px 18px 10px var(--space-3); border-radius: var(--r-pill);
+  /* set here, not as a token on :host, so --bg is the overlay's ink and not the page default */
+  background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--fg); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: var(--shadow);
+  opacity: 0; transition: opacity var(--dur-base) var(--ease-out); pointer-events: none;
+}
+.hs-back.on { opacity: 1; }
+.hs-back .hoop { width: 22px; height: 22px; }
+.hs-back b { display: block; font-weight: 500; font-size: clamp(13px, 1.6cqi, 18px); letter-spacing: -0.015em; line-height: 1.25; }
+.hs-back .sub { display: block; font-family: var(--mono); font-size: var(--t-label); color: var(--muted); }
+
+/* sizes: under 900 px only the chosen tab keeps its name */
+@container overlay (max-width: 899px) {
+  .hs-tabs button:not([aria-selected='true']) { padding: 0; width: var(--target); justify-content: center; border-color: transparent; }
+  .hs-tabs button:not([aria-selected='true']) .n { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+/* a short player: the menu becomes a 2 by 2 grid */
+@container overlay (max-height: 419px) {
+  .hs-menu { grid-template-columns: 1fr 1fr; gap: var(--space-1); width: 100%; }
+  .hs-menu li + li { border-top: 0; }
+  .m-row { grid-template-columns: auto 2em minmax(0, 1fr) auto; min-height: var(--target); }
+  .m-row .d:not(.is-count) { display: none; }
+  .m-row .d.is-count .w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .m-head { margin-bottom: var(--space-2); }
+  .m-first { text-wrap: pretty; margin: 0 0 10px; }
+}
+/* a tiny player: the show and the clock only */
+@container overlay (max-height: 200px) {
+  .hs-foot, .hs-mark { display: none; }
+  .hs-top { justify-content: flex-end; }
+}
+/* small: under 560 px wide. The time left only, the tabs as a 1 2 3 4 key row, the menu as a list of keys */
+@container overlay (max-width: 559px) {
+  .hs { --pad: 12px; }
+  .hs-in { gap: 6px; }
+  .hs-mark span, .hs-score .hs-d, .hs-tl { display: none; }
+  .hs-tabs button { padding: 0; width: var(--target); justify-content: center; border: 0; }
+  .hs-tabs .n { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hs-notad kbd { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hs-notad { padding: 0 14px; }
+  .m-head, .m-first, .m-row .d:not(.is-count), .m-row .g { display: none; }
+  .m-row .d.is-count .w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hs-menu { grid-template-columns: 1fr 1fr; width: 100%; gap: var(--space-1); }
+  .hs-menu li + li { border-top: 0; }
+  .m-row { grid-template-columns: auto minmax(0, 1fr) auto; min-height: var(--target); font-size: var(--t-label); padding: 0 var(--space-2); gap: var(--space-2); }
+}
+
+/* reduced motion: a 150 ms fade in and out, no clip, no settle, no press scale; the edge steps (see edge.ts) */
+@media (prefers-reduced-motion: reduce) {
+  .hs.is-open { animation: hs-fade-in var(--dur-reduced) var(--ease-out) both; }
+  .hs.is-open .hs-in { animation: none; }
+  .hs.is-closing { animation: hs-fade-out var(--dur-reduced) var(--ease-out) both; }
+  .e-run { transition: none; }
+  .hs-tabs button, .hs-notad, .m-row { transition: background-color var(--dur-quick) var(--ease-out), border-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out); }
+  .hs-tabs button:active, .hs-notad:active, .m-row:active { transform: none; background: var(--fill); }
+}
