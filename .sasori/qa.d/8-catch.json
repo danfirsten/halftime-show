@@ -1,0 +1,10 @@
+{
+  "interactions": [
+    {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs-tabs [data-show=\"catch\"]",
+      "action": "click",
+      "label": "Switch to Hoop's catch mid-break"
+    }
+  ]
+}
