@@ -1,0 +1,14 @@
+{
+  "routes": ["/overlay-stage?breaks=1:40&last=trivia"],
+  "interactions": [
+    {
+      "route": "/overlay-stage?breaks=1:40&last=trivia",
+      "selector": ".hs-trivia .hs-answer:first-child",
+      "action": "click",
+      "label": "Answer a trivia question"
+    }
+  ],
+  "routeFiles": {
+    "/overlay-stage?breaks=1:40&last=trivia": ["src/shows/trivia/", "src/shows/index.ts"]
+  }
+}

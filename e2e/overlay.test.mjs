@@ -205,3 +205,19 @@ test('motion on: the clip opens over 700 ms and the content settles over 900 ms'
     assert.deepEqual(anim, { name: 'hs-clip-open, hs-fade-in', dur: '0.7s, 0.22s', inner: 'hs-settle', innerDur: '0.9s' });
   });
 });
+
+test('Quick trivia: three questions on the stage, answered by key, in words, with the credit and no network calls', async () => {
+  await withStage('breaks=1:40&last=trivia', async (page, { requests, origin }) => {
+    await open(page);
+    await page.locator('.hs-trivia .hs-answer').first().waitFor({ timeout: 10000 });
+    assert.equal(await page.locator('.hs-answer').count(), 4);
+    assert.match(await page.locator('.t-n').innerText(), /^Question 1 of 3$/);
+    assert.match(await page.locator('.t-c').innerText(), /Open Trivia Database, CC BY-SA 4\.0/);
+    await page.keyboard.press('a');
+    assert.equal(await page.locator('.hs-answer[data-s="right"]').count(), 1);
+    assert.match(await page.locator('.t-say.on').innerText(), /^(Right|Not this one)$/);
+    await page.locator('.t-n', { hasText: 'Question 2 of 3' }).waitFor({ timeout: 5000 });
+    // Nothing leaves the page: every request went to the extension's own origin.
+    assert.deepEqual(requests.filter((u) => !u.startsWith(origin) && !u.startsWith('data:') && !u.startsWith('blob:')), []);
+  });
+});
