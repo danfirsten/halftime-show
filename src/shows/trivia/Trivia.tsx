@@ -107,7 +107,7 @@ export function Trivia({ register }: ShowProps) {
         <div class="t-wrap" key="done">
           <p class="lab t-n">Done</p>
           <p class="t-q">
-            {r.right} of {r.total} right. Three more next break.
+            {r.right} of {r.total} right.{r.total === 3 ? ' Three more next break.' : ''}
           </p>
         </div>
       ) : null}
