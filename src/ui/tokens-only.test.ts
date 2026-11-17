@@ -7,6 +7,7 @@ describe('tokens only', () => {
     'src/ui/ui.css',
     'src/styles/base.css',
     'src/styles/fonts.css',
+    'src/settings/settings.css',
     'entrypoints/popup/popup.css',
     'entrypoints/options/options.css',
   ];

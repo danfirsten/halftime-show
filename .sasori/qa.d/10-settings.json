@@ -1,0 +1,30 @@
+{
+  "routes": [
+    "/popup.html",
+    "/options.html"
+  ],
+  "routeFiles": {
+    "/popup.html": [
+      "entrypoints/popup/",
+      "src/settings/"
+    ],
+    "/options.html": [
+      "entrypoints/options/",
+      "src/settings/"
+    ]
+  },
+  "interactions": [
+    {
+      "route": "/popup.html",
+      "selector": ".pp-show [data-show=\"look\"]",
+      "action": "click",
+      "label": "Choose the default halftime show"
+    },
+    {
+      "route": "/options.html",
+      "selector": ".op-reset",
+      "action": "click",
+      "label": "Reset the scoreboard asks first"
+    }
+  ]
+}

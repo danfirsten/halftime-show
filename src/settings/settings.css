@@ -1,0 +1,11 @@
+/* The switch and the show choice, shared by the popup and the options page. Tokens only. */
+.sw { min-height: 44px; padding: 0 var(--space-4); gap: var(--space-3); }
+.sw-word { min-width: 2ch; text-align: right; }
+.sh-choice { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.sh-choice .pill { min-height: 44px; padding: 0 var(--space-4); font-size: 14px; }
+
+.stale { margin: 0; padding: var(--space-3) var(--space-4); border: 1px solid var(--fg); border-radius: var(--r-chip); font-size: var(--text-small); line-height: 1.45; text-wrap: pretty; }
+.stale a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Links keep the page's ink: no browser blue or purple. */
+a { color: inherit; }
