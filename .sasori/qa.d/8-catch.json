@@ -1,6 +1,10 @@
 {
-  "routes": ["/overlay-stage?breaks=0:60&last=catch"],
-  "routeFiles": {
-    "/overlay-stage?breaks=0:60&last=catch": ["src/shows/hoops-catch/", "src/overlay/", "entrypoints/overlay-stage/"]
-  }
+  "interactions": [
+    {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs-tabs [data-show=\"catch\"]",
+      "action": "click",
+      "label": "Switch to Hoop's catch mid-break"
+    }
+  ]
 }
