@@ -1,0 +1,33 @@
+/* Ink and paper pieces. Tokens only: no colour is named here. */
+
+.pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  min-height: 48px; padding: 0 var(--space-5); border-radius: var(--r-pill);
+  font-family: var(--sans); font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;
+  transition: transform var(--dur-quick) var(--ease-out), background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+.pill:active { transform: scale(0.97); }
+.pill-solid { background: var(--fg); color: var(--bg); }
+.pill-line { border: 1px solid var(--fg); }
+.pill[disabled] { opacity: 0.5; cursor: default; }
+
+.label { font-family: var(--mono); font-size: var(--text-label); letter-spacing: 0.04em; color: var(--muted); text-transform: none; }
+
+.mark { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--fg); }
+.mark-ring { background: none; border: 1.5px solid var(--fg); }
+.mark-dotted { background: none; border: 1.5px dotted var(--fg); }
+.mark-dashed { background: none; border: 1.5px dashed var(--fg); }
+.mark-live { animation: mark-breathe 1.6s var(--ease-out) infinite; }
+@keyframes mark-breathe { 50% { opacity: 0.35; } }
+
+.wordmark { margin: 0; display: inline-flex; align-items: center; gap: 10px; font-size: var(--wordmark-size, 18px); font-weight: 500; letter-spacing: -0.05em; line-height: 1; }
+
+.hoop { display: inline-block; flex: none; width: 1.15em; height: 1.15em; color: inherit; vertical-align: middle; }
+
+.clock { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pill { transition: none; }
+  .pill:active { transform: none; }
+  .mark-live { animation: none; }
+}

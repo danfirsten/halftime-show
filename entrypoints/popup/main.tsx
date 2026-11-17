@@ -1,14 +1,9 @@
 import { render } from 'preact';
+import '../../src/styles/fonts.css';
 import '../../src/styles/tokens.css';
+import '../../src/styles/base.css';
+import '../../src/ui/ui.css';
 import './popup.css';
-
-function Popup() {
-  return (
-    <main class="popup">
-      <p class="wordmark">Halftime Show</p>
-      <p class="lede">Mutes the ad break on Hulu and puts something better on top.</p>
-    </main>
-  );
-}
+import { Popup } from './Popup';
 
 render(<Popup />, document.getElementById('app')!);

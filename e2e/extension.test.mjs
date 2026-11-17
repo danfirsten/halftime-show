@@ -23,7 +23,17 @@ test('the built extension loads and its popup renders', async () => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.goto(`chrome-extension://${id}/popup.html`);
-    await page.getByText('Halftime Show', { exact: true }).waitFor();
+    await page.getByText('halftime show', { exact: true }).waitFor();
+    const requests = [];
+    page.on('request', (r) => requests.push(r.url()));
+    await page.reload();
+    await page.getByText('halftime show', { exact: true }).waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    const loaded = await page.evaluate(() => [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family));
+    assert.ok(loaded.some((f) => f.includes('Geist')), `Geist loads from the extension, got ${loaded}`);
+    assert.ok(requests.every((u) => u.startsWith('chrome-extension://')), `only extension requests: ${requests}`);
+    await page.goto(`chrome-extension://${id}/options.html`);
+    await page.getByRole('heading', { name: 'Settings' }).waitFor();
     assert.deepEqual(errors, []);
   } finally {
     await context.close();
