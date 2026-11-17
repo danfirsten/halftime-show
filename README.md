@@ -2,7 +2,7 @@
 
 # Halftime Show
 
-A browser extension for watching Hulu in Chrome or Firefox. When an ad break starts, it mutes the Hulu tab and puts a halftime show on top: a five-letter word game, quick trivia, a small game with Hoop, or something calm to look at, with a clock that runs round the edge. When the show comes back, it clears the overlay and turns the sound back on.
+A browser extension for watching Hulu in Chrome or Firefox, with Safari on the way. When an ad break starts, it mutes the Hulu tab and puts a halftime show on top: a five-letter word game, quick trivia, a small game with Hoop, or something calm to look at, with a clock that runs round the edge. When the show comes back, it clears the overlay and turns the sound back on.
 
 It never blocks, skips or speeds up ads. The ad still plays underneath; you just don't have to hear or watch it.
 
