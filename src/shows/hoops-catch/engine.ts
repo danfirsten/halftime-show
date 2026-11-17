@@ -94,7 +94,7 @@ export function createEngine(cv: HTMLCanvasElement, { onHud, onBest }: EngineOpt
     for (const d of game.dots) {
       ctx.globalAlpha = d.caught ? Math.max(0, 1 - (d.y - hy) / (R * 1.2)) : 1;
       ctx.beginPath();
-      ctx.arc(d.x * w, d.y, R * 0.19, 0, Math.PI * 2);
+      ctx.arc(d.x * w, d.y, Math.max(3, R * 0.19), 0, Math.PI * 2);
       ctx.fill();
       if (!d.caught && d.y < hy && (!near || d.y > near.y)) near = d;
     }
