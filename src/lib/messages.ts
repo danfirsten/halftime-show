@@ -26,6 +26,8 @@ export interface BreakEndMessage {
 export interface MuteReply {
   /** Whether the tab is muted now. */
   muted: boolean;
+  /** To `BREAK_START`: the browser can't mute the tab (Safari), so the content script mutes the page's video. */
+  mutePage?: boolean;
 }
 
 export interface TabState {
