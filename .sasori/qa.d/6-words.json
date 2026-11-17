@@ -1,0 +1,12 @@
+{
+  "routes": [
+    "/overlay-stage?breaks=0:90&last=words"
+  ],
+  "routeFiles": {
+    "/overlay-stage?breaks=0:90&last=words": [
+      "src/shows/five-letters/",
+      "src/overlay/",
+      "entrypoints/overlay-stage/"
+    ]
+  }
+}
