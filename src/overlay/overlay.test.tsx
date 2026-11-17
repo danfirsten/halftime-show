@@ -193,6 +193,14 @@ describe('open, update and close', () => {
     expect($('.hs-back')!.textContent).toBe('Marked as not an ad.');
   });
 
+  it('leaves out the dodged line when no ad time passed', () => {
+    mount();
+    open(30);
+    close();
+    endClose();
+    expect($('.hs-back')!.textContent).toBe('Back. Sound on.');
+  });
+
   it('finishes closing even if the animation never ends (a hidden tab)', () => {
     vi.useFakeTimers();
     mount();

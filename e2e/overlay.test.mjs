@@ -172,6 +172,15 @@ test('a small window: the scoreboard shows the time left only, the tabs are a ke
   }, { viewport: { width: 480, height: 800 } });
 });
 
+test('a small window still shows the countdown to the last show used', async () => {
+  await withStage('breaks=0:30&last=trivia', async (page) => {
+    await open(page);
+    assert.equal(await page.locator('.m-row.is-default .m-c').isVisible(), true);
+    assert.match(await page.locator('.m-row.is-default .m-c').innerText(), /^[1-3]$/);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  }, { viewport: { width: 480, height: 800 } });
+});
+
 test('reduced motion: a 150 ms fade, with no clip and no settle', async () => {
   await withStage('breaks=0:30', async (page) => {
     await open(page);

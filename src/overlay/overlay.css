@@ -19,6 +19,7 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
 /* the cover: always ink, fully opaque, square */
 .hs { position: absolute; inset: 0; overflow: hidden; background: var(--bg); color: var(--fg); pointer-events: auto; outline: none; clip-path: var(--clip-to); }
 .hs.is-still { cursor: none; }
+.hs.is-still .m-row:hover:not(.is-default), .hs.is-still .hs-notad:hover { background: none; }
 .hs-in {
   position: absolute; inset: 0; padding: calc(var(--pad) + var(--space-1));
   display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(8px, 1.6cqb, 20px);
@@ -120,8 +121,9 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
 @container overlay (max-height: 419px) {
   .hs-menu { grid-template-columns: 1fr 1fr; gap: var(--space-1); width: 100%; }
   .hs-menu li + li { border-top: 0; }
-  .m-row { grid-template-columns: auto 2em minmax(0, 1fr); min-height: var(--target); }
-  .m-row .d { display: none; }
+  .m-row { grid-template-columns: auto 2em minmax(0, 1fr) auto; min-height: var(--target); }
+  .m-row .d:not(.is-count) { display: none; }
+  .m-row .d.is-count .w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .m-head { margin-bottom: var(--space-2); }
   .m-first { text-wrap: pretty; margin: 0 0 10px; }
 }
@@ -139,10 +141,11 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
   .hs-tabs .n { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .hs-notad kbd { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .hs-notad { padding: 0 14px; }
-  .m-head, .m-first, .m-row .d, .m-row .g { display: none; }
+  .m-head, .m-first, .m-row .d:not(.is-count), .m-row .g { display: none; }
+  .m-row .d.is-count .w { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .hs-menu { grid-template-columns: 1fr 1fr; width: 100%; gap: var(--space-1); }
   .hs-menu li + li { border-top: 0; }
-  .m-row { grid-template-columns: auto 1fr; min-height: var(--target); font-size: var(--t-label); padding: 0 var(--space-2); gap: var(--space-2); }
+  .m-row { grid-template-columns: auto minmax(0, 1fr) auto; min-height: var(--target); font-size: var(--t-label); padding: 0 var(--space-2); gap: var(--space-2); }
 }
 
 /* reduced motion: a 150 ms fade in and out, no clip, no settle, no press scale; the edge steps (see edge.ts) */

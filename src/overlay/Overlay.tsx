@@ -19,7 +19,8 @@ export interface OverlayState {
   dodged: { today: number; week: number };
   /** The show the menu starts by itself. Null before the first pick ever: the first menu waits. */
   lastShow: ShowId | null;
-  /** The back note: its first line, and the ad time dodged (null when there is none to claim, after "Not an ad"). */
+  /** The back note: its first line, and the ad time dodged (null when there is none to claim, after "Not an ad";
+   *  a 0 is left out too, rather than claim "0:00 of ads dodged"). */
   note: { id: number; title: string; seconds: number | null } | null;
 }
 
@@ -145,18 +146,16 @@ function Menu(props: {
               </span>
               <span class="g">{GLYPHS[s.id]}</span>
               <span class="n">{s.name}</span>
-              <span class="d">
-                {s.id === preset && !first && countdown > 0 ? (
-                  <>
-                    Last time, starts in{' '}
-                    <span class="m-c num" key={countdown}>
-                      {countdown}
-                    </span>
-                  </>
-                ) : (
-                  s.line
-                )}
-              </span>
+              {s.id === preset && !first && countdown > 0 ? (
+                <span class="d is-count">
+                  <span class="w">Last time, starts in </span>
+                  <span class="m-c num" key={countdown}>
+                    {countdown}
+                  </span>
+                </span>
+              ) : (
+                <span class="d">{s.line}</span>
+              )}
             </button>
           </li>
         ))}
@@ -349,7 +348,7 @@ function BackNote({ title, seconds, done }: { title: string; seconds: number | n
       <Hoop />
       <div>
         <b>{title}</b>
-        {seconds !== null && (
+        {seconds !== null && seconds > 0 && (
           <span class="sub">
             <span class="num">{formatClock(seconds)}</span> of ads dodged.
           </span>
