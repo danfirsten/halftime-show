@@ -98,6 +98,20 @@ test('at 1440 there is a keyboard that works; in a small window it goes and the 
   }, { viewport: { width: 480, height: 320 } });
 });
 
+test('a short window (560 by 315) uses the small layout instead of a board too small to read', async () => {
+  await withStage(async (page) => {
+    await guess(page, 'crane');
+    await page.waitForTimeout(500);
+    assert.equal(await page.locator('.w-kb').isVisible(), false);
+    const tile = await page.locator('.w-tile').first().boundingBox();
+    assert.ok(tile.width >= 28, `tile ${tile.width}`);
+  }, { viewport: { width: 560, height: 315 } });
+  await withStage(async (page) => {
+    const key = await page.locator('.w-kb [data-k="a"]').boundingBox();
+    assert.ok(key.height >= 44 && key.width >= 32, `key ${key.width}x${key.height}`);
+  }, { viewport: { width: 1000, height: 640 } });
+});
+
 test('in full screen the board is bigger and the show still takes keys', async () => {
   await withStage(async (page) => {
     await page.locator('#btn-full').click();
