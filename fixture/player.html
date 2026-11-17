@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stand-in player</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #000; color: #fff; font: 16px/1.4 system-ui, sans-serif; }
+    #player { position: relative; max-width: 960px; margin: 0 auto; aspect-ratio: 16 / 9; background: #000; }
+    #player video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    #chrome { position: absolute; inset: auto 0 0 0; padding: 12px 16px; display: flex; gap: 16px; align-items: center; background: linear-gradient(transparent, rgba(0,0,0,.7)); }
+    #title { font-weight: 600; }
+    #ad-ui { display: flex; gap: 12px; align-items: center; margin-left: auto; }
+    #ad-ui[hidden] { display: none; }
+    #ad-label { padding: 2px 8px; border: 1px solid #fff; border-radius: 4px; }
+    #ad-progress { width: 160px; height: 4px; background: #555; }
+    #ad-progress > div { height: 100%; width: 0; background: #fff; }
+    #fixture-controls { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 16px; }
+    #fixture-controls button { font: inherit; padding: 8px 14px; border-radius: 999px; border: 1px solid #888; background: #111; color: #fff; }
+    #fixture-status { text-align: center; color: #aaa; font-family: ui-monospace, monospace; }
+  </style>
+</head>
+<body>
+  <!-- The markup the detector reads is documented in fixture/README.md. -->
+  <div id="player" data-fixture="player">
+    <video id="video" data-fixture="video" src="content.webm" muted loop autoplay playsinline></video>
+    <div id="chrome" data-fixture="chrome">
+      <span id="title">Stand-in episode</span>
+      <div id="ad-ui" data-fixture="ad-ui" hidden>
+        <span id="ad-label" data-fixture="ad-label">Ad</span>
+        <span id="ad-countdown" data-fixture="ad-countdown" aria-live="off">0:00</span>
+        <div id="ad-progress" data-fixture="ad-progress" role="progressbar" aria-label="Ad progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="fixture-controls">
+    <button type="button" id="btn-start">Start a break now</button>
+    <button type="button" id="btn-end">End the break</button>
+    <button type="button" id="btn-full">Full screen</button>
+  </div>
+  <p id="fixture-status" data-fixture-status>Content</p>
+  <script src="player.js"></script>
+</body>
+</html>

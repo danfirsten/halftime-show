@@ -1,0 +1,7 @@
+{
+  "routes": ["/fixture/player.html?breaks=1:30"],
+  "interactions": [],
+  "routeFiles": {
+    "/fixture/player.html?breaks=1:30": ["fixture/", "wxt.config.ts"]
+  }
+}
