@@ -26,7 +26,14 @@ export const browserDeps: PopupDeps = {
       return null;
     }
   },
-  watchDodged,
+  watchDodged(onTotals) {
+    // Outside the extension (the QA shooter serves this page over http) there is no storage: show 0:00.
+    try {
+      return watchDodged(onTotals);
+    } catch {
+      return () => undefined;
+    }
+  },
 };
 
 type Tab = { kind: 'loading' } | { kind: 'none' } | { kind: 'hulu'; id: number; inBreak: boolean; note: string | null };
