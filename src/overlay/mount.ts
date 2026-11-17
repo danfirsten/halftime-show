@@ -171,8 +171,14 @@ export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): 
   const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => place()) : null;
   resize?.observe(video);
   const onFull = () => place();
-  doc.addEventListener('fullscreenchange', onFull);
-  doc.addEventListener('webkitfullscreenchange', onFull);
+  // Going full screen mid break starts with a click on the player's own button, which takes focus off the cover:
+  // give it back, so Tab starts inside the halftime show.
+  const onFullChange = () => {
+    place();
+    if (state.phase === 'open' && shadow.activeElement === null) focusCover();
+  };
+  doc.addEventListener('fullscreenchange', onFullChange);
+  doc.addEventListener('webkitfullscreenchange', onFullChange);
   win.addEventListener('resize', onFull);
   // A video can move without changing size (the page above it reflows); check its place while a break is on.
   let follow: ReturnType<typeof setInterval> | undefined;
@@ -235,8 +241,8 @@ export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): 
       guardOff();
       clearInterval(follow);
       resize?.disconnect();
-      doc.removeEventListener('fullscreenchange', onFull);
-      doc.removeEventListener('webkitfullscreenchange', onFull);
+      doc.removeEventListener('fullscreenchange', onFullChange);
+      doc.removeEventListener('webkitfullscreenchange', onFullChange);
       win.removeEventListener('resize', onFull);
       render(null, root);
       destroyed = true;

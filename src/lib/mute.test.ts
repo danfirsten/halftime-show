@@ -46,6 +46,17 @@ describe('mute', () => {
     expect(tabs.get(3)).toBe(false);
   });
 
+  it('keeps the memory when muting fails part way, so the end still leaves the tab with its sound', async () => {
+    tabs.set(5, false);
+    const { muteTab, unmuteTab } = await freshMute();
+    vi.mocked(browser.tabs.update).mockRejectedValueOnce(new Error('tab busy'));
+    await expect(muteTab(5)).rejects.toThrow('tab busy');
+    // Say a retry got the mute through after all: the break's end still finds the memory and unmutes it.
+    tabs.set(5, true);
+    expect(await unmuteTab(5)).toBe(false);
+    expect(tabs.get(5)).toBe(false);
+  });
+
   it('does nothing to a tab with no break on', async () => {
     tabs.set(4, true);
     const { unmuteTab } = await freshMute();

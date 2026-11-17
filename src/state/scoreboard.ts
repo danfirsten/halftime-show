@@ -74,12 +74,30 @@ export function recordDodged(seconds: number, when: Date = new Date()): Promise<
   return next;
 }
 
-/** Calls `onTotals` with today's and this week's totals now and whenever they change. Returns a function that stops. */
+/** Milliseconds from `when` until just after the next local midnight, when "today" becomes a new day. */
+export function untilTomorrow(when: Date): number {
+  const midnight = new Date(when.getFullYear(), when.getMonth(), when.getDate() + 1).getTime();
+  return Math.max(1000, midnight - when.getTime() + 1000);
+}
+
+/** Calls `onTotals` with today's and this week's totals now, whenever they change, and again just after midnight
+ *  (a popup or an overlay left open overnight moves on to the new day). Returns a function that stops. */
 export function watchDodged(onTotals: (dodged: Dodged) => void, now: () => Date = () => new Date()): () => void {
   let stopped = false;
-  const emit = (board: Scoreboard) => {
-    if (!stopped) onTotals(dodgedTotals(board, now()));
+  let board: Scoreboard = {};
+  let midnight: ReturnType<typeof setTimeout> | undefined;
+  const emit = (next: Scoreboard) => {
+    if (stopped) return;
+    board = next;
+    onTotals(dodgedTotals(board, now()));
   };
+  const rollOver = () => {
+    midnight = setTimeout(() => {
+      emit(board);
+      rollOver();
+    }, untilTomorrow(now()));
+  };
+  rollOver();
   loadScoreboard().then(emit, () => emit({}));
   const listener = (changes: Record<string, { newValue?: unknown }>, area: string) => {
     if (area === 'local' && SCOREBOARD_KEY in changes) emit(readScoreboard(changes[SCOREBOARD_KEY]?.newValue));
@@ -87,6 +105,7 @@ export function watchDodged(onTotals: (dodged: Dodged) => void, now: () => Date 
   browser.storage.onChanged.addListener(listener);
   return () => {
     stopped = true;
+    clearTimeout(midnight);
     browser.storage.onChanged.removeListener(listener);
   };
 }

@@ -4,7 +4,7 @@
   display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
   min-height: 48px; padding: 0 var(--space-5); border-radius: var(--r-pill);
   font-family: var(--sans); font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;
-  transition: transform var(--dur-quick) var(--ease-out), background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+  transition: transform var(--dur-quick) var(--ease-out), background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out);
 }
 .pill:active { transform: scale(0.97); }
 .pill-solid { background: var(--fg); color: var(--bg); }

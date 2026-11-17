@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fakeBrowser } from 'wxt/testing/fake-browser';
-import { DAYS_KEPT, SCOREBOARD_KEY, addDodged, dayKey, dodgedTotals, loadScoreboard, readScoreboard, recordDodged, watchDodged, type Dodged } from './scoreboard';
+import { DAYS_KEPT, SCOREBOARD_KEY, addDodged, dayKey, dodgedTotals, loadScoreboard, readScoreboard, recordDodged, untilTomorrow, watchDodged, type Dodged } from './scoreboard';
 
 const at = (y: number, m: number, d: number, h = 12) => new Date(y, m - 1, d, h);
 
@@ -69,5 +69,30 @@ describe('scoreboard storage', () => {
       { today: 0, week: 0 },
       { today: 20, week: 20 },
     ]);
+  });
+
+  describe('at midnight', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('waits until just after the next local midnight', () => {
+      expect(untilTomorrow(new Date(2026, 10, 17, 23, 59, 0))).toBe(61_000);
+      expect(untilTomorrow(new Date(2026, 10, 17, 0, 0, 0))).toBe(24 * 3600_000 + 1000);
+    });
+
+    it('moves "today" on to the new day for a watcher left open overnight', async () => {
+      await recordDodged(600, new Date(2026, 10, 17, 22, 0));
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      let clock = new Date(2026, 10, 17, 23, 59, 30);
+      const seen: Dodged[] = [];
+      const stop = watchDodged((d) => seen.push(d), () => clock);
+      await vi.waitFor(() => expect(seen).toHaveLength(1));
+      expect(seen[0]).toEqual({ today: 600, week: 600 });
+      clock = new Date(2026, 10, 18, 0, 0, 1);
+      vi.advanceTimersByTime(31_000);
+      expect(seen.at(-1)).toEqual({ today: 0, week: 600 });
+      stop();
+      vi.advanceTimersByTime(48 * 3600_000);
+      expect(seen).toHaveLength(2);
+    });
   });
 });

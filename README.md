@@ -2,11 +2,11 @@
 
 # Halftime Show
 
-A browser extension for watching Hulu in Chrome or Firefox, with Safari on the way. When an ad break starts, it mutes the Hulu tab and puts a halftime show on top: a five-letter word game, quick trivia, a small game with Hoop, or something calm to look at, with a clock that runs round the edge. When the show comes back, it clears the overlay and turns the sound back on.
+A browser extension for watching Hulu in Chrome, Firefox or Safari. When an ad break starts, it mutes the Hulu tab and puts a halftime show on top: a five-letter word game, quick trivia, a small game with Hoop, or something calm to look at, with a clock that runs round the edge. When the show comes back, it clears the overlay and turns the sound back on.
 
 It never blocks, skips or speeds up ads. The ad still plays underneath; you just don't have to hear or watch it.
 
-**Status:** being built. Nothing to install yet.
+**Status:** ready to install from source. [LAUNCH.md](LAUNCH.md) says how, in Chrome, Firefox and Safari, and what to do if it misses an ad break. It isn't in the browser stores yet.
 
 ## What it does
 
@@ -28,7 +28,10 @@ npm run dev          # Chrome with the extension loaded; npm run dev:firefox for
 npm test             # unit tests
 npm run e2e          # builds, then loads the extension in Chromium
 npm run build        # .output/chrome-mv3; npm run build:firefox for Firefox, npm run build:safari for Safari
+npm run zip          # release builds and store zips for Chrome and Firefox (no test page in them)
 ```
+
+Development builds also carry a stand-in Hulu player (`fixture/`) for the tests; release builds (`HALFTIME_RELEASE=1`, which `npm run zip` and `scripts/safari-app.sh` set) leave it out. `node scripts/make-icons.mjs` remakes the icons from Hoop.
 
 When Hulu changes its player, detection is fixed in one file, `src/sites/hulu.ts`, with tests against recorded page snapshots. See `docs/product-brief.md` for how it works and `docs/design.md` for the design.
 
@@ -59,7 +62,7 @@ Halftime Show is an independent open-source project. It isn't made, endorsed or 
 ## Credits
 
 - Quick trivia's questions are a curated subset of the [Open Trivia Database](https://opentdb.com), shared under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The file keeps its own licence and a note of what was changed: [src/shows/trivia/QUESTIONS-LICENSE.md](src/shows/trivia/QUESTIONS-LICENSE.md). The show prints the credit under every question. They ship inside the extension; nothing is fetched while you watch.
-- Five letters uses word lists from [SCOWL](http://wordlist.aspell.net/) (Spell Checker Oriented Word Lists) by Kevin Atkinson, with its sources, mostly public domain. The licence text ships with the extension in `src/shows/five-letters/SCOWL-COPYRIGHT.txt`. SCOWL's licence allows copying, modifying and redistributing the lists for any purpose, so long as that notice stays with them. The lists reach this repo through the [`wordlist-english`](https://github.com/jacksonrayhamilton/wordlist-english) package (MIT), and `src/shows/five-letters/build-words.mjs` rebuilds the shipped list from it. The words are bundled in the extension; nothing is fetched.
+- Five letters uses word lists from [SCOWL](http://wordlist.aspell.net/) (Spell Checker Oriented Word Lists) by Kevin Atkinson, with its sources, mostly public domain. The licence text ships with the extension, in its `licences/` folder (from `src/shows/five-letters/SCOWL-COPYRIGHT.txt`). SCOWL's licence allows copying, modifying and redistributing the lists for any purpose, so long as that notice stays with them. The lists reach this repo through the [`wordlist-english`](https://github.com/jacksonrayhamilton/wordlist-english) package (MIT), and `src/shows/five-letters/build-words.mjs` rebuilds the shipped list from it. The words are bundled in the extension; nothing is fetched.
 
 ## Licence
 

@@ -22,6 +22,9 @@ describe('captureSnapshot', () => {
         <img src="https://img.example/me.png">
         <input value="dan@example.com">
         <p>Mail me at dan@example.com</p>
+        <span class="sc-s1x9">S4 E3 Watching as Daniel</span>
+        <style>.bg { background: url("https://img.example/bg.png?uid=99123&sig=abc") }</style>
+        <div id="user-8812345" aria-label="Switch to Daniel's kids profile">x</div>
         <div class="AdUnitView__adBarContainer">
           <div class="AdUnitView__adBar"><span>Ad</span><span class="AdUnitView__adBar__timer">0:42</span></div>
         </div>
@@ -38,7 +41,16 @@ describe('captureSnapshot', () => {
 
   it('removes personal text, email addresses and URLs with tokens', () => {
     expect(html).not.toMatch(/dan@example\.com|Signed in|Dan's profile|token|sig=|session|watch\/123|img\.example/);
-    expect(html).toContain('Mail me at [email]');
+    expect(html).not.toMatch(/Mail me|Daniel|Watching|S4 E3|uid=|99123|8812345|kids profile|<style/);
+    expect(html).toContain('id="user-#"');
+  });
+
+  it('blanks every text but the player\'s own, keeping its length', () => {
+    expect(html).toContain('<span class="sc-s1x9">** ** ******** ** ******</span>');
+  });
+
+  it('captures nothing from a page with no player or ad marker (an account page)', () => {
+    expect(captureSnapshot(page('<main><h1>Account</h1><p>Daniel, 1 Main St, Visa ending 4242</p></main>'), hulu)).toBeNull();
   });
 
   it('keeps what detection reads, and marks what was hidden', () => {
@@ -49,7 +61,7 @@ describe('captureSnapshot', () => {
   });
 
   it('reads back as an ad break', () => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = new DOMParser().parseFromString(html!, 'text/html');
     const snap = readSnapshot(doc, hulu, 0);
     expect(snap.secondsLeft).toBe(42);
     expect(snap.readings.filter((r) => r.on).map((r) => r.id)).toEqual(['adBar', 'adLabel', 'countdown', 'adPlayhead']);

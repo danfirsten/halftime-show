@@ -9,6 +9,7 @@ const PLAYER_TABS = ['*://*.hulu.com/*', '*://localhost/fixture/*'];
 
 export interface CaptureDeps {
   findTab(): Promise<number | null>;
+  /** The snapshot; '' when the tab has no player on it (an account page, say); null when it doesn't answer. */
   request(tabId: number): Promise<string | null>;
   save(html: string, name: string): void;
 }
@@ -21,6 +22,7 @@ export const browserDeps: CaptureDeps = {
   },
   async request(tabId) {
     const answer = (await browser.tabs.sendMessage(tabId, { type: CAPTURE_MESSAGE })) as { html?: unknown } | undefined;
+    if (answer?.html === null) return '';
     return typeof answer?.html === 'string' ? answer.html : null;
   },
   save(html, name) {
@@ -50,6 +52,7 @@ export function CaptureButton({ deps = browserDeps, hash = location.hash }: { de
       if (tabId === null) return setStatus({ kind: 'error', text: 'Open an episode on hulu.com in another tab first.' });
       const html = await deps.request(tabId).catch(() => null);
       if (html === null) return setStatus({ kind: 'error', text: 'That tab did not answer. Reload it and try again.' });
+      if (html === '') return setStatus({ kind: 'error', text: 'There is no player in your most recent Hulu tab. Start an episode there and try again.' });
       const name = snapshotName(new Date());
       deps.save(html, name);
       setStatus({ kind: 'saved', name });
@@ -63,7 +66,8 @@ export function CaptureButton({ deps = browserDeps, hash = location.hash }: { de
       <h2 id="op-capture" class="op-h">Detection snapshot</h2>
       <p class="op-p">
         Saves a copy of the player in your most recent Hulu tab, so detection can be fixed against a real page. Scripts,
-        links, images and anything about your account are taken out. Best taken during an ad.
+        links and images are taken out, and so is all text but the player's own, such as "Ad" and the countdown. Best
+        taken during an ad.
       </p>
       <div class="op-row">
         <Pill variant="outline" onClick={capture} disabled={status.kind === 'busy'}>

@@ -45,6 +45,12 @@ describe('CaptureButton', () => {
 });
 
 describe('snapshotName', () => {
+  it('says so when the tab has no player to capture', async () => {
+    const el = mount({ findTab: async () => 4, request: async () => '', save: vi.fn() });
+    el.querySelector('button')!.click();
+    await vi.waitFor(() => expect(el.textContent).toContain('There is no player in your most recent Hulu tab.'));
+  });
+
   it('is dated and safe as a file name', () => {
     expect(snapshotName(new Date('2026-11-17T09:05:03Z'))).toBe('halftime-snapshot-2026-11-17-09-05-03.html');
   });

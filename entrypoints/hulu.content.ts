@@ -5,7 +5,7 @@ import { mountOverlay, type OverlayHandle } from '../src/overlay';
 import { shows } from '../src/shows';
 import { createBreakControl } from '../src/lib/break-control';
 import { createPageMuter } from '../src/lib/mute';
-import { BREAK_END, BREAK_START, COMMAND_OVERRIDE, PING, PORT_NAME, TAB_STATE, messageType, type BreakEndMessage, type MuteReply, type TabState } from '../src/lib/messages';
+import { BREAK_END, BREAK_START, COMMAND_OVERRIDE, PING, PORT_NAME, TAB_STATE, messageType, type BreakEndMessage, type BreakStartMessage, type MuteReply, type TabState } from '../src/lib/messages';
 import { watchDodged, type Dodged } from '../src/state/scoreboard';
 import { createWatchClock, recordBreakSeen, recordWatched } from '../src/state/detection';
 import { presetShow, readSettings, saveLastShow, watchSettings, type Settings } from '../src/state/settings';
@@ -19,6 +19,8 @@ const WATCH_TICK_MS = 30_000;
 // mutes and unmutes the tab, and the overlay covers the ad in between. Sound first, then the picture, both ways.
 export default defineContentScript({
   matches: ['*://*.hulu.com/*'],
+  // Don't announce this script to every script on the page with window.postMessage.
+  noScriptStartedPostMessage: true,
   main(ctx) {
     document.documentElement.dataset.halftimeShow = 'ready';
     const stopCapture = answerHuluCapture(document);
@@ -32,6 +34,8 @@ export default defineContentScript({
     let updates: ReturnType<typeof setInterval> | undefined;
     let pings: ReturnType<typeof setInterval> | undefined;
     let port: Browser.runtime.Port | null = null;
+    // Whether the last mute or unmute left the tab muted, for the popup's note after the override.
+    let muted = false;
 
     // Settings reach this tab as soon as they change: switching the site off ends a break that is on.
     const stopSettings = watchSettings((next) => {
@@ -78,23 +82,27 @@ export default defineContentScript({
     const pageMute = createPageMuter(document);
     const control = createBreakControl({
       async mute() {
-        const reply = await send<MuteReply | undefined>({ type: BREAK_START });
+        const reply = await send<MuteReply | undefined>({ type: BREAK_START, fresh: true } satisfies BreakStartMessage);
         if (reply?.mutePage) pageMute.start();
+        muted = true;
       },
       async unmute(notAd) {
         const page = pageMute.end();
         const reply = await send<MuteReply | undefined>({ type: BREAK_END, notAd } satisfies BreakEndMessage).catch(() => undefined);
-        return page ?? reply?.muted === true;
+        muted = page ?? reply?.muted === true;
+        return muted;
       },
       open(seconds) {
+        // The tab is muted by now, so hold the port open first, picture or not: if this page goes away mid break,
+        // the background gives the sound back.
+        if (!port) connect();
+        clearInterval(pings);
+        pings = setInterval(() => port?.postMessage({ type: PING }), PING_MS);
         const video = findVideo();
         if (!video) return;
         overlayFor(video).open(seconds);
         clearInterval(updates);
         updates = setInterval(() => overlay?.update(detector.verdict().secondsLeft), UPDATE_MS);
-        if (!port) connect();
-        clearInterval(pings);
-        pings = setInterval(() => port?.postMessage({ type: PING }), PING_MS);
       },
       close(how) {
         clearInterval(updates);
@@ -135,7 +143,8 @@ export default defineContentScript({
         ctx.setTimeout(() => {
           if (port || !control.inBreak()) return;
           connect();
-          send({ type: BREAK_START }).catch(() => undefined);
+          // The same break, said again: the background keeps the time it started.
+          send({ type: BREAK_START } satisfies BreakStartMessage).catch(() => undefined);
         }, RECONNECT_MS);
       });
     }
@@ -144,15 +153,31 @@ export default defineContentScript({
     const onMessage = (message: unknown) => {
       const type = messageType(message);
       if (type === COMMAND_OVERRIDE) {
-        if (settings.enabled.hulu) control.toggle();
-        return Promise.resolve<TabState>({ inBreak: control.inBreak() });
+        if (!settings.enabled.hulu) return Promise.resolve<TabState>({ inBreak: control.inBreak() });
+        control.toggle();
+        // Answer once the sound has followed, so the popup can say whether it is on.
+        return control.idle().then((): TabState => ({ inBreak: control.inBreak(), muted }));
       }
       if (type === TAB_STATE) return Promise.resolve<TabState>({ inBreak: control.inBreak() });
       return undefined;
     };
     browser.runtime.onMessage.addListener(onMessage);
 
+    // Stopping mid break (the extension was reloaded, or a page script faked WXT's "newer copy started" event): give
+    // the sound back before going. Closing the port makes the background unmute too, should the message not land.
     ctx.onInvalidated(() => {
+      if (control.inBreak()) {
+        try {
+          browser.runtime.sendMessage({ type: BREAK_END, notAd: false } satisfies BreakEndMessage).catch(() => undefined);
+        } catch {
+          // The extension itself went away: its ports closed with it, and the background has already unmuted.
+        }
+      }
+      try {
+        port?.disconnect();
+      } catch {
+        // Already gone.
+      }
       detector.stop();
       stopCapture();
       stopDodged();

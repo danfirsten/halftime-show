@@ -28,7 +28,8 @@ export const browserDeps: PopupDeps = {
   async ask(tabId, type) {
     try {
       const answer = (await browser.tabs.sendMessage(tabId, { type })) as Partial<TabState> | undefined;
-      return typeof answer?.inBreak === 'boolean' ? { inBreak: answer.inBreak } : null;
+      if (typeof answer?.inBreak !== 'boolean') return null;
+      return typeof answer.muted === 'boolean' ? { inBreak: answer.inBreak, muted: answer.muted } : { inBreak: answer.inBreak };
     } catch {
       return null;
     }
@@ -79,7 +80,8 @@ export function Popup({ deps = browserDeps }: { deps?: PopupDeps }) {
     if (tab.kind !== 'hulu') return;
     const state = await deps.ask(tab.id, COMMAND_OVERRIDE);
     if (!state) return setTab({ kind: 'none' });
-    const note = state.inBreak ? 'Marked as an ad. Tab muted.' : 'Marked as not an ad. Sound on.';
+    // A tab the viewer had muted stays muted after "this isn't an ad": say "Sound on." only when it is.
+    const note = state.inBreak ? 'Marked as an ad. Tab muted.' : state.muted ? 'Marked as not an ad.' : 'Marked as not an ad. Sound on.';
     setTab({ kind: 'hulu', id: tab.id, inBreak: state.inBreak, note });
   }
 

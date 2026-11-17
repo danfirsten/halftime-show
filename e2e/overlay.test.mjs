@@ -99,6 +99,15 @@ test('in full screen: the host moves into the full-screen element and covers the
   });
 });
 
+test('going full screen mid-break keeps focus on the cover', async () => {
+  await withStage('breaks=1:30', async (page) => {
+    await open(page);
+    await page.locator('#btn-full').click();
+    await page.waitForFunction(() => document.fullscreenElement?.id === 'player');
+    await page.waitForFunction(() => document.getElementById('halftime-show-overlay')?.shadowRoot?.activeElement?.classList.contains('hs'), null, { timeout: 2000 });
+  });
+});
+
 test('keys: stopped from reaching the player while open, Esc always passes, focus comes back on close', async () => {
   await withStage('breaks=2:4', async (page) => {
     await page.locator('#btn-start').waitFor();

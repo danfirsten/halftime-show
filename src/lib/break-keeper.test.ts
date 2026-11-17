@@ -62,6 +62,18 @@ describe('break keeper', () => {
     expect(recorded).toEqual([20]);
   });
 
+  it('starts the clock afresh for a new break, even over a start left behind by a page the worker never heard leave', async () => {
+    const { keeper, recorded, starts, tick } = setup();
+    await keeper.start(1, { fresh: true });
+    // The worker was stopped and the page reloaded: nobody ended that break, so its start is still stored.
+    tick(600_000);
+    await keeper.start(1, { fresh: true });
+    expect(starts.map.get(1)).toBeDefined();
+    tick(30_000);
+    await keeper.end(1);
+    expect(recorded).toEqual([30]);
+  });
+
   it('runs one tab\'s steps in order, so an end never overtakes its start', async () => {
     const { keeper, log } = setup();
     const a = keeper.start(1);

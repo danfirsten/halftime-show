@@ -7,7 +7,7 @@ import { render } from 'preact';
 import { Popup, type PopupDeps } from './Popup';
 import { COMMAND_OVERRIDE, TAB_STATE } from '../../src/lib/messages';
 
-function fakeDeps(opts: { tab?: number | null; inBreak?: boolean | null; dodged?: { today: number; week: number } } = {}) {
+function fakeDeps(opts: { tab?: number | null; inBreak?: boolean | null; viewerMuted?: boolean; dodged?: { today: number; week: number } } = {}) {
   let inBreak = opts.inBreak ?? false;
   const asked: string[] = [];
   const deps: PopupDeps = {
@@ -15,8 +15,9 @@ function fakeDeps(opts: { tab?: number | null; inBreak?: boolean | null; dodged?
     async ask(_id, type) {
       asked.push(type);
       if (opts.inBreak === null) return null;
-      if (type === COMMAND_OVERRIDE) inBreak = !inBreak;
-      return { inBreak };
+      if (type !== COMMAND_OVERRIDE) return { inBreak };
+      inBreak = !inBreak;
+      return { inBreak, muted: inBreak || opts.viewerMuted === true };
     },
     watchDodged(on) {
       on(opts.dodged ?? { today: 870, week: 6730 });
@@ -56,6 +57,14 @@ describe('Popup', () => {
     await vi.waitFor(() => expect(button.textContent).toBe('This is an ad'));
     expect(el.textContent).toContain('Marked as not an ad. Sound on.');
     expect(asked).toEqual([TAB_STATE, COMMAND_OVERRIDE, COMMAND_OVERRIDE]);
+  });
+
+  it('never says "Sound on." after "This isn\'t an ad" in a tab the viewer had muted', async () => {
+    const el = await mount(fakeDeps({ inBreak: true, viewerMuted: true }).deps);
+    const button = el.querySelector<HTMLButtonElement>('.pp-mark')!;
+    button.click();
+    await vi.waitFor(() => expect(button.textContent).toBe('This is an ad'));
+    expect(el.querySelector('.pp-note')?.textContent).toBe('Marked as not an ad.');
   });
 
   it('reads "This isn\'t an ad" when opened during a break', async () => {

@@ -24,7 +24,7 @@ if ! xcodebuild -version >/dev/null 2>&1 || ! xcrun --find safari-web-extension-
 fi
 
 echo "1/3 Building the Safari extension"
-HALFTIME_RELEASE=1 npm run build:safari
+HALFTIME_RELEASE=1 HALFTIME_OUT_DIR="$ROOT/.output" npm run build:safari
 BUILD="$ROOT/.output/safari-mv3"
 
 echo "2/3 Wrapping it in a Mac app in safari/"

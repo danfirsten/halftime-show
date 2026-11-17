@@ -71,6 +71,12 @@ describe('Options', () => {
     for (const needle of ['collects nothing and makes no network calls', 'Tabs', 'Storage', 'Access to hulu.com', 'Open Trivia Database', 'CC BY-SA 4.0', 'SCOWL', 'not made by or affiliated with Hulu']) expect(text).toContain(needle);
   });
 
+  it('links the full licence texts that ship inside the extension', async () => {
+    const el = await mount(deps());
+    const links = [...el.querySelectorAll<HTMLAnchorElement>('a[href^="licences/"]')].map((a) => a.getAttribute('href'));
+    expect(links).toEqual(['licences/SCOWL-COPYRIGHT.txt', 'licences/QUESTIONS-LICENSE.txt', 'licences/Geist-OFL.txt', 'licences/GeistMono-OFL.txt', 'licences/LICENSE.txt']);
+  });
+
   it('says detection may be out of date only after a long watch with no break', async () => {
     const quiet = await mount(deps());
     expect(quiet.querySelector('.stale')).toBeNull();
