@@ -1,0 +1,36 @@
+{
+  "name": "halftime-show",
+  "version": "0.1.0",
+  "description": "Mutes the ad break and puts something better on top. A browser extension for Hulu in Chrome and Firefox.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "wxt prepare",
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip && wxt zip -b firefox",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "e2e": "npm run build && node --test e2e/*.test.mjs",
+    "start": "serve .output/chrome-mv3 -l ${PORT:-3000} --no-clipboard"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@preact/preset-vite": "^2.10.6",
+    "axe-core": "^4.14.1",
+    "eslint": "^9.39.5",
+    "playwright": "^1.63.0",
+    "serve": "^14.2.8",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^3.2.7",
+    "wxt": "^0.21.5"
+  },
+  "dependencies": {
+    "preact": "^11.2.0"
+  }
+}

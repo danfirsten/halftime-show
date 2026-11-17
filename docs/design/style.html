@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="en-GB" data-theme="auto" data-motion="full">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halftime Show style</title>
+<meta name="description" content="The design direction for Halftime Show, in ink and paper: the overlay, the four halftime shows, the menu, the popup and the motion.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* ---------- ink and paper tokens (from vendor/ink-and-paper/tokens/tokens.css) ---------- */
+:root {
+  --ink: #0b0b0b; --paper: #f7f7f4; --white: #ffffff; --mute: #5e5e5a; --line: #e4e4df; --well: #e9e9e4;
+  --ink-text: #f2f2ee; --ink-mute: #8f8f8a; --ink-soft: #b4b4af; --ink-line: #262626; --ink-tile: #161616; --ink-tile-line: #242424;
+  --sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'Geist Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --gutter: clamp(16px, 4.45vw, 64px);
+  --r-media: 20px; --r-card: 24px; --r-tile: 32px; --r-chip: 12px; --r-pill: 999px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-quick: 150ms; --dur-base: 220ms; --dur-slow: 320ms;
+  /* Halftime Show's own: the moment */
+  --dur-open: 700ms; --dur-settle: 900ms; --dur-close: 480ms;
+  /* theme: light */
+  --bg: var(--paper); --surface: var(--white); --fg: var(--ink); --soft: #2a2a28; --muted: var(--mute);
+  --rule: var(--line); --fill: var(--well); --inv-bg: var(--ink); --inv-fg: var(--paper);
+  --shadow: 0 24px 64px -24px rgb(0 0 0 / 0.35);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='auto'] {
+    --bg: var(--ink); --surface: var(--ink-tile); --fg: var(--ink-text); --soft: var(--ink-soft); --muted: var(--ink-mute);
+    --rule: var(--ink-line); --fill: var(--ink-tile-line); --inv-bg: var(--ink-text); --inv-fg: var(--ink);
+    --shadow: 0 24px 64px -24px rgb(0 0 0 / 0.7); color-scheme: dark;
+  }
+}
+:root[data-theme='dark'], .dark {
+  --bg: var(--ink); --surface: var(--ink-tile); --fg: var(--ink-text); --soft: var(--ink-soft); --muted: var(--ink-mute);
+  --rule: var(--ink-line); --fill: var(--ink-tile-line); --inv-bg: var(--ink-text); --inv-fg: var(--ink);
+  --shadow: 0 24px 64px -24px rgb(0 0 0 / 0.7); color-scheme: dark;
+}
+:root[data-theme='light'], .light {
+  --bg: var(--paper); --surface: var(--white); --fg: var(--ink); --soft: #2a2a28; --muted: var(--mute);
+  --rule: var(--line); --fill: var(--well); --inv-bg: var(--ink); --inv-fg: var(--paper);
+  --shadow: 0 24px 64px -24px rgb(0 0 0 / 0.35); color-scheme: light;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: 6px; }
+.num { font-variant-numeric: tabular-nums; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--muted); }
+kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; padding: 1px 6px; border: 1px solid currentColor; border-radius: 6px; opacity: 0.75; white-space: nowrap; }
+a { color: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 var(--gutter); }
+section.sec { padding-top: clamp(56px, 8vw, 112px); }
+section.sec:last-of-type { padding-bottom: clamp(56px, 8vw, 112px); }
+.sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; border-top: 1px solid var(--rule); padding-top: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+.h2 { margin: 0; font-size: clamp(30px, 4vw, 48px); font-weight: 500; letter-spacing: -0.045em; line-height: 1; }
+.h3 { margin: 0 0 8px; font-size: 18px; font-weight: 500; letter-spacing: -0.015em; line-height: 1.3; }
+.lede { margin: 0; max-width: 62ch; font-size: clamp(16px, 1.4vw, 19px); line-height: 1.45; letter-spacing: -0.012em; color: var(--soft); }
+.note { margin: 12px 0 0; max-width: 70ch; font-size: 14px; color: var(--muted); }
+
+/* ---------- top ---------- */
+.top { padding-top: clamp(28px, 4vw, 48px); }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -0.05em; font-size: 22px; line-height: 1; }
+.wordmark .hoop { width: 22px; height: 22px; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.display { margin: clamp(40px, 7vw, 96px) 0 20px; font-size: clamp(48px, 10vw, 136px); font-weight: 500; letter-spacing: -0.06em; line-height: 0.9; }
+
+/* pills and chips */
+.pill { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: var(--r-pill); font-size: 15px; font-weight: 500; white-space: nowrap;
+  transition: transform var(--dur-quick) var(--ease-out), background-color 200ms var(--ease-out), color 200ms var(--ease-out), border-color 200ms var(--ease-out); }
+.pill:active, .pill.is-pressed { transform: scale(0.97); }
+.pill-solid { background: var(--fg); color: var(--bg); }
+.pill-line { border: 1px solid var(--fg); }
+.pill-small { min-height: 36px; padding: 0 16px; font-size: 13px; }
+.pill[aria-pressed='true'] { background: var(--fg); color: var(--bg); }
+.chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: var(--r-chip); border: 1px solid var(--rule); background: var(--bg); font-size: 13px; transition: border-color var(--dur-quick) var(--ease-out); }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed='true'] { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: var(--r-pill); border: 1px solid var(--rule); font-size: 13px; }
+.disc { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--fg); }
+.disc.ring { background: none; border: 1.5px solid var(--fg); }
+.disc.dotted { background: none; border: 1.5px dotted var(--fg); }
+.status.is-live .disc { animation: breathe 1.6s var(--ease-out) infinite; }
+@keyframes breathe { 50% { opacity: 0.35; } }
+.banner { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--fg); border-radius: var(--r-chip); font-size: 13px; line-height: 1.45; }
+
+/* ---------- the player frame (a mock video) ---------- */
+.frame { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; overflow: hidden; container: player / size; border-radius: 4px; color: var(--ink-text); }
+.pic { position: absolute; inset: 0; transition: opacity 120ms linear; }
+.pic svg { width: 100%; height: 100%; display: block; }
+.pic-ad { opacity: 0; }
+.frame.is-ad .pic-ad { opacity: 1; }
+.chip-tag { position: absolute; left: 14px; top: 14px; padding: 6px 12px; border-radius: var(--r-pill); background: rgb(11 11 11 / 0.78); color: var(--ink-text); font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.ad-tag { position: absolute; left: 14px; top: 14px; padding: 4px 10px; border-radius: 4px; background: #111; color: #eee; font: 500 12px/1.4 var(--sans); }
+
+/* browser tab strip above the moment */
+.tabbar { display: flex; align-items: flex-end; gap: 8px; height: 40px; padding: 0 8px; background: var(--fill); border-radius: 12px 12px 0 0; }
+.btab { display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 12px; max-width: 100%; background: var(--surface); border-radius: 10px 10px 0 0; font-size: 13px; white-space: nowrap; overflow: hidden; }
+.btab .spk { width: 16px; height: 16px; flex: none; }
+.btab .spk .slash { opacity: 0; transition: opacity 120ms linear; }
+.btab.is-muted .spk .slash { opacity: 1; }
+.btab.is-muted .spk .wave { opacity: 0; }
+.btab .snd { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+
+/* ---------- the overlay ---------- */
+.hs {
+  /* always ink, whatever the page theme */
+  --bg: var(--ink); --surface: var(--ink-tile); --fg: var(--ink-text); --soft: var(--ink-soft); --muted: var(--ink-mute);
+  --rule: var(--ink-line); --fill: var(--ink-tile-line); --inv-bg: var(--ink-text); --inv-fg: var(--ink);
+  color-scheme: dark;
+  --pad: clamp(14px, 3.2cqi, 48px);
+  --t-title: clamp(17px, 3.1cqi, 46px);
+  --t-body: clamp(13px, 1.7cqi, 22px);
+  --t-clock: clamp(17px, 2.8cqi, 40px);
+  --t-label: clamp(11px, 1.15cqi, 15px);
+  --edge-in: clamp(6px, 0.9cqi, 12px);
+  position: absolute; inset: 0; background: var(--bg); color: var(--fg); font-family: var(--sans);
+  clip-path: inset(0); outline: none;
+}
+.hs .lab { font-family: var(--mono); font-size: var(--t-label); letter-spacing: 0.04em; color: var(--muted); line-height: 1.3; }
+.hs-edge { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.hs-edge rect { x: var(--edge-in); y: var(--edge-in); width: calc(100% - 2 * var(--edge-in)); height: calc(100% - 2 * var(--edge-in)); rx: 14px; fill: none; stroke-width: 2px; }
+.hs-edge .e-track { stroke: var(--rule); }
+.hs-edge .e-run { stroke: var(--fg); stroke-dasharray: 1000 1000; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+.hs-edge .e-dots { stroke: var(--fg); stroke-dasharray: 0 9; stroke-linecap: round; opacity: 0; }
+.hs.is-unknown .e-run, .hs.is-unknown .e-track { opacity: 0; }
+.hs.is-unknown .e-dots { opacity: 1; }
+.hs-in { position: absolute; inset: 0; padding: calc(var(--pad) + 4px); display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; gap: clamp(8px, 1.6cqb, 20px); }
+.hs-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.hs-mark { display: inline-flex; align-items: center; gap: 8px; font-weight: 500; letter-spacing: -0.05em; font-size: var(--t-body); opacity: 0.6; line-height: 1; padding-top: 4px; }
+.hs-mark .hoop { width: 1.15em; height: 1.15em; }
+.hs-score { text-align: right; display: grid; gap: 2px; justify-items: end; }
+.hs-clock { display: flex; align-items: baseline; gap: 8px; }
+.hs-t { font-family: var(--mono); font-weight: 500; font-size: var(--t-clock); line-height: 1; letter-spacing: 0; }
+.hs-stage { position: relative; min-height: 0; }
+.pane { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden;
+  transition: opacity var(--dur-base) var(--ease-out), visibility 0s linear var(--dur-base); }
+.pane.on { opacity: 1; visibility: visible; transition: opacity var(--dur-base) var(--ease-out), visibility 0s; }
+.hs-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.hs-tabs { display: flex; gap: 6px; flex-wrap: nowrap; min-width: 0; overflow: hidden; }
+.hs-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 6px; border-radius: var(--r-pill); border: 1px solid var(--rule); font-size: var(--t-label); font-family: var(--sans); color: var(--soft); white-space: nowrap;
+  transition: border-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out); }
+.hs-tabs button:hover { border-color: var(--muted); color: var(--fg); }
+.hs-tabs button:active, .hs-notad:active, .m-row:active, .t-a:active { transform: scale(0.97); }
+.hs-tabs button[aria-selected='true'] { border-color: var(--fg); color: var(--fg); }
+.hs-tabs .k, .m-row .k { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; font-family: var(--mono); font-size: var(--t-label); border: 1px solid var(--rule); flex: none; }
+.hs-tabs button[aria-selected='true'] .k { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.hs-notad { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 18px; border-radius: var(--r-pill); border: 1px solid var(--fg); font-size: var(--t-label); font-weight: 500; white-space: nowrap; flex: none; transition: transform var(--dur-quick) var(--ease-out), background-color var(--dur-quick) var(--ease-out); }
+.hs-notad:hover { background: var(--fill); }
+
+/* menu */
+.m-head { margin: 0 0 clamp(10px, 2cqb, 24px); font-size: var(--t-title); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; text-align: center; }
+.m-first { margin: -6px 0 clamp(10px, 2cqb, 20px); font-size: var(--t-body); color: var(--soft); text-align: center; max-width: 52ch; }
+.hs-menu { list-style: none; margin: 0; padding: 0; width: min(100%, 62cqi); display: grid; }
+.hs-menu li + li { border-top: 1px solid var(--rule); }
+.m-row { width: 100%; display: grid; grid-template-columns: auto 2.2em minmax(0, 1fr) auto; align-items: center; gap: clamp(8px, 1.6cqi, 18px); min-height: max(44px, 7.4cqb); padding: 0 clamp(8px, 1.4cqi, 16px); border-radius: var(--r-chip); text-align: left; font-size: var(--t-body); transition: background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out); }
+.m-row:hover { background: var(--fill); }
+.m-row .n { font-weight: 500; letter-spacing: -0.02em; }
+.m-row .d { font-family: var(--mono); font-size: var(--t-label); color: var(--muted); }
+.m-row .g { display: grid; place-items: center; height: 1.4em; }
+.m-row .g svg { width: 100%; height: 1.2em; display: block; }
+.m-row.is-default { background: var(--inv-bg); color: var(--inv-fg); }
+.m-row.is-default .d { color: var(--inv-fg); opacity: 0.7; }
+.m-row.is-default .k { border-color: var(--inv-fg); }
+.hs-menu li:has(.is-default) + li, .hs-menu li:has(+ li .is-default) { border-color: transparent; }
+
+/* five letters */
+.w-wrap { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 5cqi, 72px); --tile: min(5.4cqi, 7.2cqb); }
+.w-grid { display: grid; gap: calc(var(--tile) * 0.12); }
+.w-row { display: grid; grid-template-columns: repeat(5, var(--tile)); gap: calc(var(--tile) * 0.12); border-radius: 8px; outline: 1px dashed transparent; outline-offset: 3px; transition: outline-color var(--dur-quick) var(--ease-out); }
+.w-row.is-bad { outline-color: var(--fg); }
+.w-tile { position: relative; width: var(--tile); height: var(--tile); display: grid; place-items: center; border-radius: calc(var(--tile) * 0.18); border: 1px solid var(--rule); font-weight: 500; font-size: calc(var(--tile) * 0.5); letter-spacing: -0.02em; line-height: 1; text-transform: uppercase;
+  transition: background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), border-color var(--dur-quick) var(--ease-out); transition-delay: var(--d, 0ms); }
+.w-tile.has { border-color: var(--muted); }
+.w-tile[data-s='hit'] { background: var(--inv-bg); color: var(--inv-fg); border-color: var(--inv-bg); }
+.w-tile[data-s='near'] { border-color: var(--fg); }
+.w-tile[data-s='near']::after { content: ''; position: absolute; top: 12%; right: 12%; width: 22%; height: 22%; border-radius: 50%; border: 1.5px solid var(--fg); transition: opacity var(--dur-quick) var(--ease-out); transition-delay: var(--d, 0ms); }
+.w-tile[data-s='no'] { border-color: transparent; color: var(--muted); }
+.w-side { display: grid; gap: clamp(8px, 1.6cqb, 16px); justify-items: start; max-width: 40cqi; }
+.w-kb { display: grid; gap: 4px; --key: calc(var(--tile) * 0.62); }
+.w-kb div { display: flex; gap: 4px; }
+.w-kb div:nth-child(2) { padding-left: calc(var(--key) * 0.5); }
+.w-kb button { min-width: var(--key); height: calc(var(--key) * 1.25); padding: 0 4px; border-radius: 6px; background: var(--fill); font-family: var(--sans); font-size: calc(var(--key) * 0.46); font-weight: 500; text-transform: uppercase; transition: background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out); }
+.w-kb button:active { transform: scale(0.97); }
+.w-kb button.wide { font-size: calc(var(--key) * 0.36); text-transform: none; padding: 0 8px; }
+.w-kb button[data-s='hit'] { background: var(--inv-bg); color: var(--inv-fg); }
+.w-kb button[data-s='near'] { background: none; box-shadow: inset 0 0 0 1px var(--fg); }
+.w-kb button[data-s='no'] { background: none; color: var(--muted); opacity: 0.5; }
+.w-msg { margin: 0; min-height: 1.3em; font-size: var(--t-body); color: var(--fg); }
+.w-note { margin: 0; }
+
+/* trivia */
+.t-wrap { width: min(100%, 64cqi); display: grid; gap: clamp(8px, 1.8cqb, 18px); justify-items: start; }
+.t-n { margin: 0; }
+.t-q { margin: 0; font-size: var(--t-title); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; text-wrap: balance; }
+.t-as { display: grid; gap: clamp(6px, 1.2cqb, 12px); width: 100%; }
+.t-row { display: flex; align-items: center; gap: 14px; }
+.t-a { display: inline-flex; align-items: center; gap: 12px; min-height: max(44px, 7cqb); padding: 0 22px 0 8px; border-radius: var(--r-pill); border: 1px solid var(--rule); font-size: var(--t-body); font-weight: 500; text-align: left;
+  transition: background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), border-color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out); }
+.t-a .k { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid currentColor; font-family: var(--mono); font-size: var(--t-label); opacity: 0.8; }
+.t-a:hover { border-color: var(--muted); }
+.t-a[data-s='right'] { background: var(--inv-bg); color: var(--inv-fg); border-color: var(--inv-bg); }
+.t-a[data-s='wrong'] { border-style: dashed; border-color: var(--fg); }
+.t-say { font-family: var(--mono); font-size: var(--t-label); color: var(--fg); opacity: 0; transition: opacity var(--dur-quick) var(--ease-out); }
+.t-say.on { opacity: 1; }
+.t-c { margin: 0; }
+
+/* catch and look */
+.pane[data-pane='catch'], .pane[data-pane='look'] { align-items: stretch; justify-content: stretch; }
+.c-cv, .l-cv, .l-new { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; border-radius: 8px; }
+.c-cv { cursor: none; touch-action: none; }
+.c-cv:focus-visible { outline: 1px dashed var(--rule); outline-offset: 2px; }
+.c-hud { position: absolute; left: 0; top: 0; display: flex; align-items: baseline; gap: 14px; pointer-events: none; }
+.c-score { font-weight: 500; font-size: var(--t-title); letter-spacing: -0.04em; line-height: 1; color: var(--fg); }
+.c-miss { display: inline-flex; gap: 5px; }
+.c-miss i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--fg); }
+.c-miss i.used { background: var(--fg); }
+.c-over { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); margin: 0; text-align: center; font-size: var(--t-body); opacity: 0; transition: opacity var(--dur-base) var(--ease-out); pointer-events: none; width: 80%; }
+.c-over.on { opacity: 1; }
+.c-help { position: absolute; right: 0; top: 0; margin: 0; text-align: right; }
+.l-new { opacity: 0; transition: opacity var(--dur-base) var(--ease-out); }
+.l-new.on { opacity: 1; }
+.l-p { position: absolute; right: 0; bottom: 0; margin: 0; }
+
+/* the moment: open and close */
+.frame .hs.anim { clip-path: inset(15% round 32px); opacity: 0; visibility: hidden;
+  transition: clip-path var(--dur-close) var(--ease-inout), opacity var(--dur-base) var(--ease-out) calc(var(--dur-close) - var(--dur-base)), visibility 0s linear var(--dur-close); }
+.frame .hs.anim .hs-in { transform: scale(1.08); transition: transform var(--dur-close) var(--ease-inout); }
+.frame .hs.anim.is-open { clip-path: inset(0 round 0px); opacity: 1; visibility: visible;
+  transition: clip-path var(--dur-open) var(--ease-inout), opacity var(--dur-base) var(--ease-out), visibility 0s; }
+.frame .hs.anim.is-open .hs-in { transform: none; transition: transform var(--dur-settle) var(--ease-expo); }
+
+/* the back note */
+.hs-back { position: absolute; left: clamp(10px, 2cqi, 24px); bottom: clamp(10px, 2.4cqb, 28px); display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 12px; border-radius: var(--r-pill); background: rgb(11 11 11 / 0.78); color: var(--ink-text); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 24px 64px -24px rgb(0 0 0 / 0.7);
+  opacity: 0; transition: opacity var(--dur-base) var(--ease-out); pointer-events: none; }
+.hs-back.on { opacity: 1; }
+.hs-back .hoop { width: 22px; height: 22px; flex: none; }
+.hs-back b { display: block; font-weight: 500; font-size: clamp(13px, 1.6cqi, 18px); letter-spacing: -0.015em; line-height: 1.25; }
+.hs-back span { display: block; font-family: var(--mono); font-size: clamp(11px, 1.1cqi, 13px); color: var(--ink-mute); }
+
+/* medium player: only the chosen tab keeps its name */
+@container player (max-width: 899px) {
+  .hs-tabs button:not([aria-selected='true']) { padding: 0; width: 44px; justify-content: center; border-color: transparent; }
+  .hs-tabs button:not([aria-selected='true']) .n { display: none; }
+}
+/* short player: the menu becomes a 2 by 2 grid */
+@container player (max-height: 419px) {
+  .hs-menu { grid-template-columns: 1fr 1fr; gap: 4px; width: 100%; }
+  .hs-menu li + li { border-top: 0; }
+  .m-row { grid-template-columns: auto 2em minmax(0, 1fr); min-height: 44px; }
+  .m-row .d { display: none; }
+  .m-head { margin-bottom: 8px; }
+  .m-first { margin: 0 0 10px; }
+}
+/* tiny player: the show and the clock only */
+@container player (max-height: 200px) {
+  .hs-foot, .hs-mark { display: none; }
+  .hs-top { justify-content: flex-end; }
+}
+/* small player: under 560 px wide */
+@container player (max-width: 559px) {
+  .hs { --pad: 10px; }
+  .hs-in { gap: 6px; }
+  .hs-mark span, .hs-score .hs-d, .hs-tl { display: none; }
+  .hs-tabs button { padding: 0; width: 44px; justify-content: center; border: 0; }
+  .hs-tabs .n { display: none; }
+  .hs-notad kbd { display: none; }
+  .hs-notad { padding: 0 14px; }
+  .m-head, .m-first, .m-row .d, .m-row .g { display: none; }
+  .hs-menu { grid-template-columns: 1fr 1fr; width: 100%; gap: 4px; }
+  .hs-menu li + li { border-top: 0; }
+  .m-row { grid-template-columns: auto 1fr; min-height: 36px; font-size: 12px; padding: 0 8px; gap: 8px; }
+  .m-row .k { width: 24px; height: 24px; }
+  .w-side { display: none; }
+  .w-wrap { --tile: min(8.6cqi, 17cqb); }
+  .w-row:not(.is-last):not(.is-cur) { display: none; }
+  .t-n, .t-c { display: none; }
+  .t-q { font-size: 13px; letter-spacing: -0.01em; }
+  .t-as { grid-template-columns: repeat(3, auto); justify-content: start; }
+  .t-a { min-height: 36px; font-size: 12px; padding: 0 10px 0 4px; gap: 6px; }
+  .t-a .k { width: 24px; height: 24px; }
+  .t-say, .c-help, .l-p { display: none; }
+}
+
+/* ---------- page layouts ---------- */
+.moment-wrap { border-radius: 12px; border: 1px solid var(--rule); overflow: hidden; }
+.steps { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px 16px; counter-reset: s; }
+.steps li { counter-increment: s; font-size: 13px; color: var(--muted); padding-top: 10px; border-top: 2px solid var(--rule); transition: color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out); }
+.steps li::before { content: counter(s); font-family: var(--mono); font-size: 11px; display: block; }
+.steps li.on { color: var(--fg); border-color: var(--fg); }
+.row-ctl { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; align-items: start; }
+.cap { margin: 10px 0 0; }
+@media (max-width: 900px) { .two, .three { grid-template-columns: 1fr; } }
+
+/* popup */
+.popup { width: 100%; max-width: 360px; background: var(--bg); color: var(--fg); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; display: grid; gap: 16px; font-size: 14px; line-height: 1.45; }
+.popup .label { text-transform: none; }
+.pp-head { display: flex; justify-content: space-between; align-items: center; }
+.pp-head .wordmark { font-size: 18px; }
+.pp-head .wordmark .hoop { width: 18px; height: 18px; }
+.switch { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; font-size: 13px; }
+.switch .track { position: relative; width: 36px; height: 20px; border-radius: 999px; border: 1px solid var(--fg); transition: background-color var(--dur-quick) var(--ease-out); }
+.switch .track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--fg); transition: transform var(--dur-quick) var(--ease-out), background-color var(--dur-quick) var(--ease-out); }
+.switch[aria-checked='true'] .track { background: var(--fg); }
+.switch[aria-checked='true'] .track::after { transform: translateX(16px); background: var(--bg); }
+.pp-sec { display: grid; gap: 8px; }
+.pp-sec h4 { margin: 0; font-size: 14px; font-weight: 500; letter-spacing: -0.01em; }
+.pp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.radios { display: grid; gap: 4px; font-size: 13px; }
+.radios label { display: flex; align-items: center; gap: 8px; min-height: 28px; cursor: pointer; }
+.radios input { accent-color: currentColor; width: 16px; height: 16px; margin: 0; }
+.dl { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; margin: 0; font-size: 13px; }
+.dl dt { color: var(--soft); }
+.dl dd { margin: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+.pp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pp-actions .pill { min-height: 40px; padding: 0 18px; font-size: 14px; }
+.pp-drawer { display: grid; gap: 2px; overflow: hidden; max-height: 0; opacity: 0; transform: translateY(-6px); transition: max-height var(--dur-slow) var(--ease-drawer), opacity var(--dur-slow) var(--ease-drawer), transform var(--dur-slow) var(--ease-drawer); }
+.pp-drawer.on { max-height: 160px; opacity: 1; transform: none; }
+.pp-drawer button { text-align: left; min-height: 36px; padding: 0 12px; border-radius: var(--r-chip); font-size: 13px; }
+.pp-drawer button:hover { background: var(--fill); }
+.pp-foot { margin: 0; font-size: 12px; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 12px; }
+.pp-empty { display: grid; justify-items: center; text-align: center; gap: 10px; padding: 8px 0; }
+.pp-empty .hoop { width: 56px; height: 56px; }
+.pp-empty p { margin: 0; max-width: 30ch; }
+
+/* options */
+.opts { max-width: 640px; border: 1px solid var(--rule); border-radius: var(--r-card); padding: clamp(18px, 3vw, 32px); display: grid; gap: 22px; background: var(--bg); }
+.opts h4 { margin: 0 0 8px; font-size: 15px; font-weight: 500; }
+.opts .r { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; }
+.opts p { margin: 0; font-size: 14px; color: var(--soft); max-width: 60ch; }
+.field { min-height: 44px; padding: 0 14px; border-radius: var(--r-chip); border: 1px solid var(--rule); background: var(--surface); color: var(--fg); font: inherit; font-size: 14px; }
+.confirm { display: none; margin-top: 10px; }
+.confirm.on { display: block; }
+
+/* tokens */
+.swatches { display: grid; gap: 0; border: 1px solid var(--rule); border-radius: var(--r-card); overflow: hidden; }
+.swatches .sw { display: grid; grid-template-columns: 40px 1fr auto; gap: 12px; align-items: center; padding: 10px 16px; background: var(--bg); color: var(--fg); border-top: 1px solid var(--rule); font-size: 13px; }
+.swatches .sw:first-child { border-top: 0; }
+.swatches .chipc { width: 40px; height: 28px; border-radius: 8px; border: 1px solid var(--rule); }
+.swatches code { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.scale { border: 1px solid var(--rule); border-radius: var(--r-card); overflow: hidden; }
+.scale .st { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; padding: 14px 18px; border-top: 1px solid var(--rule); }
+.scale .st:first-child { border-top: 0; }
+.scale.dark { background: var(--bg); color: var(--fg); }
+@media (max-width: 600px) { .scale .st { grid-template-columns: 1fr; gap: 4px; } }
+.kit { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 20px; border: 1px solid var(--rule); border-radius: var(--r-card); background: var(--bg); color: var(--fg); }
+.space { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; }
+.space div { background: var(--fg); }
+.radii { display: flex; gap: 14px; flex-wrap: wrap; }
+.radii div { width: 72px; height: 56px; border: 1px solid var(--fg); display: grid; place-items: end start; padding: 6px; font-family: var(--mono); font-size: 10px; }
+
+/* motion specimens */
+.mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.mcell { border: 1px solid var(--rule); border-radius: var(--r-card); padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.mcell .nm { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mcell .nm b { font-weight: 500; font-size: 14px; }
+.stage { position: relative; height: 72px; border-radius: 12px; background: var(--fill); overflow: hidden; display: grid; place-items: center; }
+.track-dot { position: absolute; left: 12px; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--fg); transition: left 1200ms var(--e, linear); }
+.beat .track-dot { left: calc(100% - 26px); }
+.fade-box { width: 60%; height: 28px; border-radius: 999px; background: var(--fg); opacity: 0; transition: opacity var(--dd) var(--ease-out); }
+.beat .fade-box { opacity: 1; }
+.drawer-demo { position: absolute; left: 12px; right: 12px; top: 0; height: 44px; border-radius: 0 0 12px 12px; background: var(--fg); transform: translateY(-100%); transition: transform var(--dur-slow) var(--ease-drawer), opacity var(--dur-slow) var(--ease-drawer); }
+.beat .drawer-demo { transform: none; }
+.mini { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: #000; container: player / size; }
+.mini .hs { --pad: 10px; }
+.clip-demo { position: absolute; inset: 0; background: var(--ink); clip-path: inset(15% round 32px); opacity: 0; transition: clip-path var(--dur-close) var(--ease-inout), opacity var(--dur-base) var(--ease-out) calc(var(--dur-close) - var(--dur-base)); display: grid; place-items: center; color: var(--ink-text); }
+.clip-demo > div { transform: scale(1.08); transition: transform var(--dur-close) var(--ease-inout); font-weight: 500; letter-spacing: -0.04em; font-size: 20px; }
+.beat .clip-demo { clip-path: inset(0); opacity: 1; transition: clip-path var(--dur-open) var(--ease-inout), opacity var(--dur-base) var(--ease-out); }
+.beat .clip-demo > div { transform: none; transition: transform var(--dur-settle) var(--ease-expo); }
+.tiles-demo { display: flex; gap: 6px; --tile: 36px; }
+.mcell .hs-back { position: absolute; left: 10px; bottom: 10px; padding: 6px 14px 6px 8px; }
+.mcell .hs-back b { font-size: 13px; }
+.beat .note-demo { opacity: 1; }
+
+/* reduced motion: every transform off, final states, opacity may stay */
+html[data-motion='reduce'] *, html[data-motion='reduce'] *::before, html[data-motion='reduce'] *::after { animation: none !important; }
+html[data-motion='reduce'] .frame .hs.anim, html[data-motion='reduce'] .clip-demo { clip-path: none !important; transition: opacity 150ms var(--ease-out), visibility 0s linear 150ms !important; }
+html[data-motion='reduce'] .frame .hs.anim.is-open { transition: opacity 150ms var(--ease-out), visibility 0s !important; }
+html[data-motion='reduce'] .hs-in, html[data-motion='reduce'] .clip-demo > div { transform: none !important; transition: none !important; }
+html[data-motion='reduce'] .pill:active, html[data-motion='reduce'] .pill.is-pressed, html[data-motion='reduce'] .hs-tabs button:active, html[data-motion='reduce'] .hs-notad:active, html[data-motion='reduce'] .m-row:active, html[data-motion='reduce'] .t-a:active, html[data-motion='reduce'] .w-kb button:active { transform: none !important; }
+html[data-motion='reduce'] .pill.is-pressed { background: var(--fill); }
+html[data-motion='reduce'] .pill-solid.is-pressed { background: var(--soft); }
+html[data-motion='reduce'] .track-dot { transition: none; left: calc(100% - 26px); }
+html[data-motion='reduce'] .drawer-demo { transform: none; opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+html[data-motion='reduce'] .beat .drawer-demo { opacity: 1; }
+html[data-motion='reduce'] .pp-drawer { transform: none; transition: opacity var(--dur-slow) var(--ease-out); }
+html[data-motion='reduce'] .w-tile, html[data-motion='reduce'] .w-tile::after { transition-delay: 0ms !important; }
+html[data-motion='reduce'] .hs-edge .e-run { transition: none; }
+.rm-only { display: none; }
+html[data-motion='reduce'] .rm-only { display: inline; }
+</style>
+</head>
+<body>
+
+<header class="wrap top">
+  <div class="bar">
+    <span class="wordmark"><svg class="hoop" viewBox="-16 -16 32 32" aria-hidden="true"><path d="M0,-14C8.2,-14 14.5,-8 14.5,1C14.5,9.2 8,13.6 0,13.6C-8,13.6 -14.5,9.2 -14.5,1C-14.5,-8 -8.2,-14 0,-14Z" fill="none" stroke="currentColor" stroke-width="2.4"/><ellipse cx="-5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/><ellipse cx="5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/></svg>halftime show</span>
+    <div class="controls" role="group" aria-label="Page controls">
+      <button class="pill pill-line pill-small" id="theme" aria-label="Page theme">Theme: auto</button>
+      <button class="pill pill-line pill-small" id="motion" aria-pressed="false">Reduced motion: off</button>
+      <button class="pill pill-solid pill-small" id="replay">Replay the moment</button>
+    </div>
+  </div>
+  <h1 class="display">Halftime show.</h1>
+  <p class="lede">The design direction for Dan's design gate, 17 November 2026. An extension that mutes the ad break and puts something better on top. Every word, score and question on this page is a sample. The overlay is always ink; the page around it follows the theme switch above.</p>
+</header>
+
+<main>
+<!-- the moment -->
+<section class="sec wrap" id="moment">
+  <div class="sec-head"><h2 class="h2">The moment</h2><span class="label">Clip open on the ad, clip shut on the show. Sped up: an 8 second break</span></div>
+  <div class="moment-wrap">
+    <div class="tabbar"><div class="btab" id="mtab"><svg class="spk" viewBox="0 0 16 16" aria-hidden="true"><path d="M2,6h3l4-3v10l-4-3H2z" fill="currentColor"/><path class="wave" d="M11,5.5q1.6,2.5 0,5M12.8,4q2.6,4 0,8" fill="none" stroke="currentColor" stroke-width="1.2"/><path class="slash" d="M11,6l4,4M15,6l-4,4" stroke="currentColor" stroke-width="1.3"/></svg><span>Sample episode</span><span class="snd" id="msnd">Sound on</span></div></div>
+    <div class="frame" id="mframe">
+      <div class="pic pic-show"></div>
+      <div class="pic pic-ad"></div>
+      <div class="hs anim" id="mov"></div>
+      <div class="hs-back" id="mback" role="status"></div>
+    </div>
+  </div>
+  <ol class="steps" id="msteps">
+    <li>The show plays, sound on</li>
+    <li>An ad starts. The tab mutes first</li>
+    <li>The clip opens over the ad, 700 ms, and the inside settles, 900 ms</li>
+    <li>The menu starts the last show used in 3</li>
+    <li>The edge drains as the break runs</li>
+    <li>The show is back. Sound on first, then the clip shuts, 480 ms</li>
+    <li>The back note, 4 s</li>
+  </ol>
+  <p class="note">With reduced motion on: the mute and unmute are the same, the overlay fades in and out over 150 ms with no clip and no settle, and the edge clock steps every 5 seconds.</p>
+</section>
+
+<!-- the four shows -->
+<section class="sec wrap" id="shows">
+  <div class="sec-head"><h2 class="h2">The four halftime shows</h2><span class="label">Click the player, then use the keys. 1 to 4 switch</span></div>
+  <div class="row-ctl" role="group" aria-label="Pick a halftime show">
+    <button class="pill pill-line pill-small" data-pick="words" aria-pressed="true">Five letters</button>
+    <button class="pill pill-line pill-small" data-pick="trivia" aria-pressed="false">Quick trivia</button>
+    <button class="pill pill-line pill-small" data-pick="catch" aria-pressed="false">Hoop's catch</button>
+    <button class="pill pill-line pill-small" data-pick="look" aria-pressed="false">Something to look at</button>
+    <button class="pill pill-line pill-small" data-pick="menu" aria-pressed="false">The menu</button>
+  </div>
+  <div class="frame" id="sframe"><div class="pic pic-ad" style="opacity:1"></div><div class="hs" id="sov" tabindex="-1"></div></div>
+  <p class="note">Five letters: type a guess and press Enter (the sample answer is a word about breaks). Filled tile: right letter, right place. Outline with a ring: in the word, wrong place. Hoop's catch: dots are caught by falling through the ring; arrow keys or the pointer move Hoop, and it plays itself until you do. Something to look at finishes as the break does; here a break is 40 seconds.</p>
+</section>
+
+<!-- sizes -->
+<section class="sec wrap" id="sizes">
+  <div class="sec-head"><h2 class="h2">At any size</h2><span class="label">The overlay sizes to the video with container queries</span></div>
+  <div class="three">
+    <div><div class="frame" style="max-width:420px"><div class="pic pic-ad" style="opacity:1"></div><div class="hs" data-static="menu"></div></div><p class="label cap">420 px: the menu as a 2 by 2 key grid, time left only</p></div>
+    <div><div class="frame" style="max-width:420px"><div class="pic pic-ad" style="opacity:1"></div><div class="hs" data-static="words"></div></div><p class="label cap">420 px: Five letters keeps the last guess and the row you're typing</p></div>
+    <div><div class="frame" style="max-width:420px"><div class="pic pic-ad" style="opacity:1"></div><div class="hs is-unknown" data-static="trivia" data-unknown="1"></div></div><p class="label cap">Time left unknown: a dotted edge that doesn't drain, "Ad break"</p></div>
+  </div>
+</section>
+
+<!-- menu first run + back note -->
+<section class="sec wrap" id="menu">
+  <div class="sec-head"><h2 class="h2">First break, and back</h2><span class="label">The first menu ever, and the note when the show resumes</span></div>
+  <div style="display:grid;gap:40px">
+    <div><div class="frame"><div class="pic pic-ad" style="opacity:1"></div><div class="hs" data-static="menu" data-first="1"></div></div><p class="label cap">The menu defaults to the last show used. The first time, one line says what just happened</p></div>
+    <div style="max-width:720px"><div class="frame" id="bframe"><div class="pic pic-show"></div><div class="hs-back on" id="bback" role="status"></div></div>
+      <div class="row-ctl" style="margin-top:12px"><button class="pill pill-line pill-small" id="bagain">Show the note again</button></div></div>
+  </div>
+</section>
+
+<!-- popup -->
+<section class="sec wrap" id="popup">
+  <div class="sec-head"><h2 class="h2">The popup</h2><span class="label">360 px, follows the browser's theme</span></div>
+  <div class="three">
+    <div class="popup dark" data-surface="app">
+      <div class="pp-head"><span class="wordmark" data-hoop></span><button class="switch" role="switch" aria-checked="true" aria-label="On for hulu.com"><span>On</span><span class="track"></span></button></div>
+      <div><span class="status is-live" role="status"><span class="disc"></span>In a break, 1:42 left</span></div>
+      <div class="pp-sec"><h4>Halftime show</h4>
+        <div class="pp-chips pp-show" role="group" aria-label="Default halftime show">
+          <button class="chip" data-show="words" aria-pressed="true">Five letters</button><button class="chip" data-show="trivia" aria-pressed="false">Quick trivia</button><button class="chip" data-show="catch" aria-pressed="false">Hoop's catch</button><button class="chip" data-show="look" aria-pressed="false">Something to look at</button>
+        </div>
+        <div class="radios"><label><input type="radio" name="st1" checked> Start each break with the menu</label><label><input type="radio" name="st1"> Start the last show straight away</label></div>
+      </div>
+      <div class="pp-sec"><h4>Ad time dodged</h4><dl class="dl"><dt>Today</dt><dd>14:30</dd><dt>This week</dt><dd>1:52:10</dd></dl></div>
+      <div class="pp-sec">
+        <div class="pp-actions"><button class="pill pill-solid pp-mark">This isn't an ad</button><button class="pill pill-line pp-pause" aria-expanded="false">Pause</button></div>
+        <div class="pp-drawer" aria-hidden="true"><button tabindex="-1">Pause for an hour</button><button tabindex="-1">Pause until I turn it back on</button><button tabindex="-1">Pause in this tab only</button></div>
+      </div>
+      <div class="pp-sec"><h4>Shortcuts</h4><dl class="dl"><dt>Ad, or not an ad</dt><dd>Alt+Shift+A</dd><dt>Pause or resume</dt><dd>Alt+Shift+H</dd><dt>Pick a show</dt><dd>1 to 4</dd></dl></div>
+      <p class="pp-foot">Collects nothing. Makes no network calls. The code is public: <a href="#">GitHub ↗</a> · <a href="#">Options</a></p>
+    </div>
+
+    <div class="popup light" data-surface="app">
+      <div class="pp-head"><span class="wordmark" data-hoop></span><button class="switch" role="switch" aria-checked="true" aria-label="On for hulu.com"><span>On</span><span class="track"></span></button></div>
+      <div><span class="status" role="status"><span class="disc"></span>Watching for ad breaks</span></div>
+      <div class="pp-sec"><h4>Halftime show</h4>
+        <div class="pp-chips pp-show" role="group" aria-label="Default halftime show">
+          <button class="chip" data-show="words" aria-pressed="false">Five letters</button><button class="chip" data-show="trivia" aria-pressed="false">Quick trivia</button><button class="chip" data-show="catch" aria-pressed="true">Hoop's catch</button><button class="chip" data-show="look" aria-pressed="false">Something to look at</button>
+        </div>
+      </div>
+      <div class="pp-sec"><h4>Ad time dodged</h4><dl class="dl"><dt>Today</dt><dd>14:30</dd><dt>This week</dt><dd>1:52:10</dd></dl></div>
+      <div class="pp-sec"><div class="pp-actions"><button class="pill pill-solid pp-mark">This is an ad</button><button class="pill pill-line pp-pause" aria-expanded="false">Pause</button></div>
+        <div class="pp-drawer" aria-hidden="true"><button tabindex="-1">Pause for an hour</button><button tabindex="-1">Pause until I turn it back on</button><button tabindex="-1">Pause in this tab only</button></div></div>
+      <div class="banner" role="note"><span class="disc dotted" style="margin-top:4px"></span><span>No breaks spotted in the last 3 episodes. Detection may be out of date. Press Alt+Shift+A at the next ad, and <a href="#">report it on GitHub ↗</a>.</span></div>
+    </div>
+
+    <div class="popup light" data-surface="app">
+      <div class="pp-head"><span class="wordmark" data-hoop></span><button class="switch" role="switch" aria-checked="true" aria-label="On for hulu.com"><span>On</span><span class="track"></span></button></div>
+      <div class="pp-empty"><svg class="hoop" viewBox="-16 -16 32 32" aria-hidden="true"><path d="M0,-14C8.2,-14 14.5,-8 14.5,1C14.5,9.2 8,13.6 0,13.6C-8,13.6 -14.5,9.2 -14.5,1C-14.5,-8 -8.2,-14 0,-14Z" fill="none" stroke="currentColor" stroke-width="1.6"/><ellipse cx="-5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/><ellipse cx="5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/></svg>
+        <p>No ad breaks yet. Start an episode and the first one opens here.</p></div>
+      <div class="pp-sec"><div class="pp-actions"><button class="pill pill-line pp-mark">This is an ad</button></div><p class="label" style="margin:0">Use it if an ad plays and nothing happens.</p></div>
+      <p class="pp-foot">Collects nothing. Makes no network calls. The code is public: <a href="#">GitHub ↗</a></p>
+    </div>
+  </div>
+  <p class="label cap">In a break (ink), watching (paper, with the detection note), and the first run before any break.</p>
+</section>
+
+<!-- options -->
+<section class="sec wrap" id="options">
+  <div class="sec-head"><h2 class="h2">Options</h2><span class="label">One column, 640 px at most</span></div>
+  <div class="opts" data-surface="app">
+    <div><h4>Halftime show</h4>
+      <div class="r"><span>Default show</span><select class="field" aria-label="Default show"><option>Five letters</option><option>Quick trivia</option><option>Hoop's catch</option><option>Something to look at</option></select></div></div>
+    <div><h4>Sites</h4><div class="r"><span>hulu.com</span><button class="switch" role="switch" aria-checked="true" aria-label="On for hulu.com"><span>On</span><span class="track"></span></button></div></div>
+    <div><h4>Scoreboard</h4><div class="r"><span class="num">Today 14:30, this week 1:52:10</span><button class="pill pill-line pill-small op-reset">Reset scoreboard</button></div>
+      <div class="confirm banner" role="alertdialog" aria-label="Reset scoreboard"><div><p style="color:var(--fg)">Reset ad time dodged for today and this week? High scores stay.</p><div class="pp-actions" style="margin-top:10px"><button class="pill pill-solid pill-small op-yes">Reset scoreboard</button><button class="pill pill-line pill-small op-no">Keep it</button></div></div></div></div>
+    <div><h4>Privacy</h4><p>Halftime Show collects nothing and makes no network calls. Settings and scores stay in this browser. It doesn't block, skip or speed up ads: the ad still plays, muted and covered. Halftime Show is not made by or affiliated with Hulu.</p></div>
+    <div><h4>Credits</h4><p>Trivia questions from Open Trivia Database, CC BY-SA 4.0 <a href="#">↗</a>. Hoop is from ink and paper. Code on <a href="#">GitHub ↗</a>, MIT licence.</p></div>
+  </div>
+</section>
+
+<!-- tokens -->
+<section class="sec wrap" id="tokens">
+  <div class="sec-head"><h2 class="h2">Tokens</h2><span class="label">Ink and paper roles, as they are. No accent</span></div>
+  <div class="two">
+    <div class="swatches light" id="sw-light"></div>
+    <div class="swatches dark" id="sw-dark"></div>
+  </div>
+  <p class="label cap">Left: paper, for the popup and options in a light browser. Right: ink, the overlay always, and the popup in a dark browser.</p>
+
+  <h3 class="h3" style="margin-top:40px">Type in the overlay, at full screen</h3>
+  <div class="scale dark" style="font-family:var(--sans)">
+    <div class="st"><span class="label">Show, 7cqi, max 96</span><span style="font-size:clamp(32px,6vw,72px);font-weight:500;letter-spacing:-0.05em;line-height:.95">PAUSE 23</span></div>
+    <div class="st"><span class="label">Title, 3.1cqi, max 46</span><span style="font-size:clamp(20px,3vw,40px);font-weight:500;letter-spacing:-0.035em;line-height:1.1">Ad break. 1:42 left. Pick a halftime show.</span></div>
+    <div class="st"><span class="label">Body, 1.7cqi, max 22</span><span style="font-size:clamp(15px,1.6vw,20px);line-height:1.45">Three questions, one break. Questions from an open bank.</span></div>
+    <div class="st"><span class="label">Clock, mono 500, max 40</span><span class="num" style="font-family:var(--mono);font-weight:500;font-size:clamp(18px,2.6vw,36px);line-height:1">1:42</span></div>
+    <div class="st"><span class="label">Label, mono, min 11</span><span style="font-family:var(--mono);font-size:13px;letter-spacing:.04em;color:var(--muted)">Dodged today 14:30</span></div>
+  </div>
+
+  <h3 class="h3" style="margin-top:40px">Buttons, chips and states</h3>
+  <div class="two">
+    <div class="kit light">
+      <button class="pill pill-solid">Play Five letters</button><button class="pill pill-line">Pause</button><button class="pill pill-line pill-small">Reset scoreboard</button>
+      <button class="chip" aria-pressed="true">Five letters</button><button class="chip" aria-pressed="false">Quick trivia</button>
+      <span class="status"><span class="disc"></span>Watching for ad breaks</span><span class="status"><span class="disc ring"></span>Paused until 22:40</span><span class="status"><span class="disc dotted"></span>Off on hulu.com</span>
+    </div>
+    <div class="kit dark">
+      <button class="pill pill-solid">Play Five letters</button><button class="pill pill-line">Not an ad <kbd>Alt Shift A</kbd></button>
+      <button class="chip" aria-pressed="true">Hoop's catch</button>
+      <span class="status is-live"><span class="disc"></span>In a break, 1:42 left</span>
+      <div class="tiles-demo hs" style="position:static;background:none"><div class="w-tile" data-s="hit">P</div><div class="w-tile" data-s="near">A</div><div class="w-tile" data-s="no">R</div><div class="w-tile has">T</div><div class="w-tile"></div></div>
+    </div>
+  </div>
+
+  <h3 class="h3" style="margin-top:40px">Space and radius</h3>
+  <div class="two">
+    <div class="space" aria-label="Spacing steps"><div style="width:4px;height:4px"></div><div style="width:8px;height:8px"></div><div style="width:12px;height:12px"></div><div style="width:16px;height:16px"></div><div style="width:24px;height:24px"></div><div style="width:32px;height:32px"></div><div style="width:48px;height:48px"></div><div style="width:64px;height:64px"></div><span class="label">4 8 12 16 24 32 48 64</span></div>
+    <div class="radii"><div style="border-radius:0">0 overlay</div><div style="border-radius:12px">12 tile</div><div style="border-radius:20px">20 edge</div><div style="border-radius:24px">24 card</div><div style="border-radius:999px">pill</div></div>
+  </div>
+</section>
+
+<!-- motion -->
+<section class="sec wrap" id="motion-sec">
+  <div class="sec-head"><h2 class="h2">Motion</h2><span class="label">Every token on a loop. <span class="rm-only">Reduced motion is on: final states and opacity only.</span></span></div>
+  <div class="mgrid" id="mgrid">
+    <div class="mcell"><div class="nm"><b>--ease-out</b><span class="label">.23, 1, .32, 1</span></div><div class="stage"><span class="track-dot" style="--e:var(--ease-out)"></span></div><span class="label">Fades, hovers, the back note</span></div>
+    <div class="mcell"><div class="nm"><b>--ease-expo</b><span class="label">.16, 1, .3, 1</span></div><div class="stage"><span class="track-dot" style="--e:var(--ease-expo)"></span></div><span class="label">The show settling inside the clip</span></div>
+    <div class="mcell"><div class="nm"><b>--ease-inout</b><span class="label">.77, 0, .175, 1</span></div><div class="stage"><span class="track-dot" style="--e:var(--ease-inout)"></span></div><span class="label">The clip, open and shut</span></div>
+    <div class="mcell"><div class="nm"><b>--ease-drawer</b><span class="label">.32, .72, 0, 1</span></div><div class="stage"><span class="track-dot" style="--e:var(--ease-drawer)"></span></div><span class="label">The popup's pause menu</span></div>
+    <div class="mcell"><div class="nm"><b>--dur-quick</b><span class="label">150 ms</span></div><div class="stage"><button class="pill pill-solid pill-small press-demo" tabindex="-1">Not an ad</button></div><span class="label">Press: scale to 0.97. Reduced: the fill changes instead</span></div>
+    <div class="mcell"><div class="nm"><b>--dur-base</b><span class="label">220 ms</span></div><div class="stage"><span class="fade-box" style="--dd:var(--dur-base)"></span></div><span class="label">A show starting, an answer, the back note. Opacity, so it stays with reduced motion</span></div>
+    <div class="mcell"><div class="nm"><b>--dur-slow</b><span class="label">320 ms</span></div><div class="stage"><span class="drawer-demo"></span></div><span class="label">The pause drawer. Reduced: it fades</span></div>
+    <div class="mcell"><div class="nm"><b>--dur-open, --dur-settle, --dur-close</b><span class="label">700, 900, 480 ms</span></div><div class="mini"><div class="pic pic-ad" style="opacity:1"></div><div class="clip-demo"><div>halftime show</div></div></div><span class="label">The clip. Reduced: a 150 ms fade, no clip, no settle</span></div>
+    <div class="mcell"><div class="nm"><b>The edge clock</b><span class="label">1 s linear steps</span></div><div class="mini"><div class="hs" data-static="look" data-total="12" data-fast="1"></div></div><span class="label">A 12 second break. Reduced: steps every 5 s</span></div>
+    <div class="mcell"><div class="nm"><b>Tile marks</b><span class="label">150 ms, 60 ms apart</span></div><div class="stage hs" style="position:relative;inset:auto;background:var(--ink)"><div class="tiles-demo" id="tdemo"></div></div><span class="label">No flip, no shake. Reduced: all five at once</span></div>
+    <div class="mcell"><div class="nm"><b>The back note</b><span class="label">220 ms in, 4 s, 220 ms out</span></div><div class="mini"><div class="pic pic-show"></div><div class="hs-back note-demo" role="status"></div></div><span class="label">Opacity only, so it is the same with reduced motion</span></div>
+    <div class="mcell"><div class="nm"><b>The live disc</b><span class="label">1.6 s, the only loop</span></div><div class="stage"><span class="status is-live"><span class="disc"></span>In a break, 1:42 left</span></div><span class="label">Popup only, while a break is on. Reduced: still</span></div>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const root = document.documentElement;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const reduced = () => root.dataset.motion === 'reduce';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) root.dataset.motion = 'reduce'; } catch (e) {}
+
+const HOOP_D = 'M0,-14C8.2,-14 14.5,-8 14.5,1C14.5,9.2 8,13.6 0,13.6C-8,13.6 -14.5,9.2 -14.5,1C-14.5,-8 -8.2,-14 0,-14Z';
+const hoopSVG = (sw = 2.4) => `<svg class="hoop" viewBox="-16 -16 32 32" aria-hidden="true"><path d="${HOOP_D}" fill="none" stroke="currentColor" stroke-width="${sw}"/><ellipse cx="-5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/><ellipse cx="5" cy="-1.4" rx="1.6" ry="2.9" fill="currentColor"/></svg>`;
+$$('[data-hoop]').forEach(el => { el.innerHTML = hoopSVG() + 'halftime show'; });
+
+const fmt = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+/* ---------- the mock video pictures (greys only) ---------- */
+const SHOW_PIC = `<svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1b1a"/><stop offset="1" stop-color="#3b3b37"/></linearGradient></defs><rect width="160" height="90" fill="url(#sky)"/><circle cx="118" cy="22" r="6" fill="#a9a9a3"/><path d="M0,58 Q30,44 62,54 T120,50 T160,54 V90 H0Z" fill="#262624"/><path d="M0,70 Q44,60 92,71 T160,66 V90 H0Z" fill="#141413"/><rect x="38" y="60" width="9" height="14" fill="#0e0e0d"/><rect x="40" y="63" width="2.5" height="3" fill="#cfcfc8"/></svg><span class="chip-tag">Sample episode</span>`;
+const AD_PIC = `<svg viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="160" height="90" fill="#d6d6d1"/><circle cx="112" cy="46" r="26" fill="#bdbdb7"/><text x="16" y="50" font-family="Geist, sans-serif" font-weight="600" font-size="14" letter-spacing="-0.6" fill="#2a2a28">Sample ad</text></svg><span class="ad-tag">Ad 1:42</span>`;
+$$('.pic-show').forEach(p => { p.innerHTML = SHOW_PIC; });
+$$('.pic-ad').forEach(p => { p.innerHTML = AD_PIC; });
+const BACK = (t = '1:42') => `${hoopSVG(2.6)}<div><b>Back. Sound on.</b><span>${t} of ads dodged.</span></div>`;
+$$('.hs-back').forEach(b => { b.innerHTML = BACK(); });
+
+/* ---------- shows ---------- */
+const SHOWS = [
+  { id: 'words', name: 'Five letters', line: 'Guess the word' },
+  { id: 'trivia', name: 'Quick trivia', line: 'Three questions' },
+  { id: 'catch', name: "Hoop's catch", line: 'Best 41' },
+  { id: 'look', name: 'Something to look at', line: 'Builds over the break' }
+];
+const GLYPH = {
+  words: '<svg viewBox="0 0 44 10" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2"><rect x=".6" y=".6" width="7.4" height="8.8" rx="1.6"/><rect x="9.6" y=".6" width="7.4" height="8.8" rx="1.6"/><rect x="18.6" y=".6" width="7.4" height="8.8" rx="1.6" fill="currentColor"/><rect x="27.6" y=".6" width="7.4" height="8.8" rx="1.6"/><rect x="36.6" y=".6" width="7.4" height="8.8" rx="1.6"/></g></svg>',
+  trivia: '<svg viewBox="0 0 12 16" aria-hidden="true"><text x="6" y="13" text-anchor="middle" font-family="Geist, sans-serif" font-weight="600" font-size="15" fill="currentColor">?</text></svg>',
+  catch: `<svg viewBox="-16 -16 32 32" aria-hidden="true"><path d="${HOOP_D}" fill="none" stroke="currentColor" stroke-width="2.6"/><ellipse cx="-5" cy="-1.4" rx="1.8" ry="3" fill="currentColor"/><ellipse cx="5" cy="-1.4" rx="1.8" ry="3" fill="currentColor"/></svg>`,
+  look: '<svg viewBox="0 0 24 16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M1,4 q5,-4 11,0 t11,0"/><path d="M1,9 q5,-4 11,0 t11,0"/><path d="M1,14 q5,-4 11,0 t11,0"/></g></svg>'
+};
+
+const WORDS = new Set('pause crane shade sport score clock break games quiet sound watch movie scene shows drama comic couch snack chips pizza muted timer hoops board chair light night plays stage teams field court goals balls cheer prize round story actor lines title frame pixel radio voice music audio video table plate glass water house heart smile laugh train plant river ocean stone brick paper inked marks sloth hello world about other their there which would could three first after never every great small large right place point spoon flame crisp cocoa sweet salty bread toast tasty quick drink sofas rests pulse pinch truce relax sleep dream'.split(' '));
+const ANSWERS = ['pause', 'score', 'couch', 'snack', 'clock'];
+const KB = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'];
+
+function markGuess(g, a) {
+  const res = Array(5).fill('no'), left = {};
+  for (let i = 0; i < 5; i++) { if (g[i] === a[i]) res[i] = 'hit'; else left[a[i]] = (left[a[i]] || 0) + 1; }
+  for (let i = 0; i < 5; i++) if (res[i] !== 'hit' && left[g[i]] > 0) { res[i] = 'near'; left[g[i]]--; }
+  return res;
+}
+
+class Words {
+  constructor(pane, ov) {
+    this.ov = ov; this.pane = pane; this.ai = 0; this.streak = 2;
+    pane.innerHTML = `<div class="w-wrap"><div class="w-grid" aria-label="Five letters board"></div><div class="w-side"><div class="w-kb"></div><p class="w-msg" aria-live="polite"></p><p class="lab w-note">Streak <span class="num w-st">2</span> this episode. Sample word list</p></div></div>`;
+    this.grid = $('.w-grid', pane); this.kb = $('.w-kb', pane); this.msg = $('.w-msg', pane);
+    this.kb.innerHTML = KB.map((r, i) => `<div>${i === 2 ? '<button class="wide" data-k="enter">Enter</button>' : ''}${[...r].map(c => `<button data-k="${c}" tabindex="-1">${c}</button>`).join('')}${i === 2 ? '<button class="wide" data-k="del">Delete</button>' : ''}</div>`).join('');
+    this.kb.addEventListener('click', e => { const b = e.target.closest('button'); if (b) { this.key(b.dataset.k); ov.el.focus({ preventScroll: true }); } });
+    this.reset(['crane', 'shade']);
+  }
+  reset(pre = []) {
+    this.ans = ANSWERS[this.ai % ANSWERS.length]; this.rows = []; this.cur = ''; this.done = false; this.msg.textContent = '';
+    this.grid.innerHTML = Array.from({ length: 6 }, () => `<div class="w-row">${'<div class="w-tile"></div>'.repeat(5)}</div>`).join('');
+    $$('button', this.kb).forEach(b => { delete b.dataset.s; });
+    pre.forEach(w => this.submit(w, true));
+    this.paint();
+  }
+  paint() {
+    const rows = $$('.w-row', this.grid);
+    rows.forEach((r, i) => {
+      r.classList.toggle('is-last', i === this.rows.length - 1);
+      r.classList.toggle('is-cur', i === this.rows.length && !this.done);
+      if (i === this.rows.length) $$('.w-tile', r).forEach((t, j) => { t.textContent = this.cur[j] || ''; t.classList.toggle('has', !!this.cur[j]); });
+    });
+    $('.w-st', this.pane).textContent = this.streak;
+  }
+  key(k) {
+    if (this.done) return;
+    if (k === 'enter') return this.submit(this.cur);
+    if (k === 'del' || k === 'backspace') { this.cur = this.cur.slice(0, -1); return this.paint(); }
+    if (/^[a-z]$/.test(k) && this.cur.length < 5) { this.cur += k; this.paint(); }
+  }
+  submit(w, quiet) {
+    if (w.length < 5) { this.say('Five letters, please.'); return; }
+    const row = $$('.w-row', this.grid)[this.rows.length];
+    if (!WORDS.has(w)) {
+      row.classList.add('is-bad'); this.say('Not in the word list.');
+      setTimeout(() => row.classList.remove('is-bad'), 1200); return;
+    }
+    const res = markGuess(w, this.ans);
+    $$('.w-tile', row).forEach((t, j) => {
+      t.textContent = w[j]; t.classList.remove('has');
+      t.style.setProperty('--d', quiet || reduced() ? '0ms' : j * 60 + 'ms');
+      t.dataset.s = res[j];
+    });
+    [...w].forEach((c, j) => { const b = $(`[data-k="${c}"]`, this.kb); const rank = { no: 0, near: 1, hit: 2 }; if (!b.dataset.s || rank[res[j]] > rank[b.dataset.s]) b.dataset.s = res[j]; });
+    this.rows.push(w); this.cur = '';
+    if (w === this.ans) { this.done = true; this.streak++; this.say(`Got it in ${this.rows.length}. Streak ${this.streak} this episode.`); this.next(); }
+    else if (this.rows.length === 6) { this.done = true; this.streak = 0; this.say(`It was ${this.ans.toUpperCase()}. Streak back to 0.`); this.next(); }
+    else if (!quiet) this.say('');
+    this.paint();
+  }
+  next() { setTimeout(() => { this.ai++; this.reset(['crane']); }, 3200); }
+  say(t) { this.msg.textContent = t; }
+}
+
+const QS = [
+  { q: 'How many players from each team are on a basketball court at once?', a: ['4', '5', '6'], r: 1 },
+  { q: 'How long is half-time in a Premier League football match?', a: ['10 minutes', '15 minutes', '20 minutes'], r: 1 },
+  { q: 'How many keys does a standard piano have?', a: ['76', '88', '96'], r: 1 }
+];
+class Trivia {
+  constructor(pane) {
+    this.pane = pane;
+    pane.innerHTML = `<div class="t-wrap"><p class="lab t-n"></p><p class="t-q"></p><div class="t-as"></div><p class="lab t-c">Sample questions, written for this page. The real ones come from Open Trivia Database, CC BY-SA 4.0.</p></div>`;
+    this.i = 0; this.right = 0; this.locked = false; this.show();
+  }
+  show() {
+    const q = QS[this.i]; this.locked = false;
+    $('.t-n', this.pane).textContent = `Question ${this.i + 1} of 3`;
+    $('.t-q', this.pane).textContent = q.q;
+    $('.t-as', this.pane).innerHTML = q.a.map((a, j) => `<div class="t-row"><button class="t-a" data-j="${j}"><span class="k">${j + 1}</span>${a}</button><span class="t-say"></span></div>`).join('');
+    $$('.t-a', this.pane).forEach(b => b.addEventListener('click', () => this.answer(+b.dataset.j)));
+  }
+  answer(j) {
+    if (this.locked) return; this.locked = true;
+    const q = QS[this.i], bs = $$('.t-a', this.pane), says = $$('.t-say', this.pane);
+    if (j === q.r) { bs[j].dataset.s = 'right'; says[j].textContent = 'Right'; this.right++; }
+    else { bs[j].dataset.s = 'wrong'; says[j].textContent = 'Not this one'; bs[q.r].dataset.s = 'right'; }
+    says[j].classList.add('on');
+    setTimeout(() => {
+      if (this.i < 2) { this.i++; this.show(); }
+      else { $('.t-n', this.pane).textContent = 'Done'; $('.t-q', this.pane).textContent = `${this.right} of 3 right. Three more next break.`; $('.t-as', this.pane).innerHTML = ''; setTimeout(() => { this.i = 0; this.right = 0; this.show(); }, 3000); }
+    }, 1200);
+  }
+  key(k) { if (/^[1-3]$/.test(k)) this.answer(+k - 1); }
+}
+
+const HOOP_PATH = typeof Path2D !== 'undefined' ? new Path2D(HOOP_D) : null;
+class Catch {
+  constructor(pane) {
+    this.pane = pane;
+    pane.innerHTML = `<canvas class="c-cv" tabindex="0" aria-label="Hoop's catch. Move Hoop with the left and right arrow keys or the pointer."></canvas><div class="c-hud"><span class="c-score num">0</span><span class="lab">best <span class="num c-best">0</span></span><span class="c-miss" aria-label="Misses"><i></i><i></i><i></i></span></div><p class="lab c-help">Sample game. Arrow keys or the pointer</p><p class="c-over"></p>`;
+    this.cv = $('canvas', pane); this.ctx = this.cv.getContext('2d');
+    this.best = store.get('hs-best', 0); this.auto = true; this.raf = 0;
+    this.restart();
+    new ResizeObserver(() => this.size()).observe(this.cv);
+    this.cv.addEventListener('pointermove', e => { const r = this.cv.getBoundingClientRect(); this.tx = Math.min(.96, Math.max(.04, (e.clientX - r.left) / r.width)); this.auto = false; });
+    this.cv.addEventListener('pointerdown', () => { if (this.state === 'over') this.restart(); });
+  }
+  restart() { this.dots = []; this.score = 0; this.miss = 0; this.state = 'play'; this.hx = .5; this.tx = .5; this.spawn = .4; this.blink = 0; this.hud(); $('.c-over', this.pane).classList.remove('on'); }
+  size() { const r = this.cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1); this.w = r.width; this.h = r.height; this.cv.width = Math.round(r.width * d); this.cv.height = Math.round(r.height * d); this.ctx.setTransform(d, 0, 0, d, 0, 0); this.draw(); }
+  R() { return Math.max(12, Math.min(this.w, this.h) * 0.075); }
+  hy() { return this.h - this.R() * 1.9; }
+  hud() { $('.c-score', this.pane).textContent = this.score; $('.c-best', this.pane).textContent = this.best; $$('.c-miss i', this.pane).forEach((m, i) => m.classList.toggle('used', i < this.miss)); }
+  key(k) {
+    if (k === 'arrowleft') { this.tx = Math.max(.04, this.tx - .09); this.auto = false; }
+    else if (k === 'arrowright') { this.tx = Math.min(.96, this.tx + .09); this.auto = false; }
+    else if (k === ' ' && this.state === 'over') this.restart();
+  }
+  start() { if (this.raf) return; this.last = performance.now(); const loop = t => { this.raf = requestAnimationFrame(loop); const dt = Math.min(.05, (t - this.last) / 1000); this.last = t; this.step(dt); this.draw(); }; this.raf = requestAnimationFrame(loop); }
+  stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
+  step(dt) {
+    if (!this.w) return;
+    const R = this.R(), hy = this.hy();
+    if (this.state === 'play') {
+      this.spawn -= dt;
+      if (this.spawn <= 0) { this.dots.push({ x: .06 + Math.random() * .88, y: -8, v: this.h * (.26 + Math.min(.22, this.score * .007)) }); this.spawn = Math.max(.5, 1.1 - this.score * .015); }
+    }
+    if (this.auto) { const c = this.dots.filter(d => !d.caught && d.y < hy).sort((a, b) => b.y - a.y)[0]; if (c) this.tx = c.x + (Math.sin(performance.now() / 700) * .02); }
+    const k = reduced() ? 1 : 1 - Math.pow(0.0004, dt);
+    this.hx += (this.tx - this.hx) * k;
+    const hx = this.hx * this.w;
+    for (const d of this.dots) {
+      const py = d.y; d.y += d.v * dt;
+      if (!d.caught && this.state === 'play' && py < hy && d.y >= hy && Math.abs(d.x * this.w - hx) < R * 0.78) {
+        d.caught = true; this.score++; this.blink = reduced() ? 0 : .14;
+        if (this.score > this.best) { this.best = this.score; store.set('hs-best', this.best); }
+        this.hud();
+      }
+      if (!d.caught && !d.gone && d.y > this.h + 10) { d.gone = true; if (this.state === 'play') { this.miss++; this.hud(); if (this.miss >= 3) this.over(); } }
+    }
+    this.dots = this.dots.filter(d => !d.gone && !(d.caught && d.y > hy + R * 1.2));
+    this.blink = Math.max(0, this.blink - dt);
+  }
+  over() {
+    this.state = 'over';
+    const o = $('.c-over', this.pane); o.textContent = `Round over. ${this.score}. Best ${this.best}. ${this.auto ? 'Again in a moment.' : 'Press space to go again.'}`; o.classList.add('on');
+    if (this.auto) setTimeout(() => { if (this.state === 'over') this.restart(); }, 2200);
+  }
+  draw() {
+    const c = this.ctx; if (!this.w) return;
+    c.clearRect(0, 0, this.w, this.h);
+    const R = this.R(), hy = this.hy(), hx = this.hx * this.w;
+    c.strokeStyle = '#262626'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, hy + R * 1.35); c.lineTo(this.w, hy + R * 1.35); c.stroke();
+    let near = null;
+    c.fillStyle = '#F2F2EE';
+    for (const d of this.dots) {
+      c.globalAlpha = d.caught ? Math.max(0, 1 - (d.y - hy) / (R * 1.2)) : 1;
+      c.beginPath(); c.arc(d.x * this.w, d.y, R * .19, 0, Math.PI * 2); c.fill();
+      if (!d.caught && d.y < hy && (!near || d.y > near.y)) near = d;
+    }
+    c.globalAlpha = 1;
+    c.save(); c.translate(hx, hy); const s = R / 14.5; c.scale(s, s);
+    c.strokeStyle = '#F2F2EE'; c.lineWidth = 1.8; if (HOOP_PATH) c.stroke(HOOP_PATH);
+    let ex = 0, ey = 0;
+    if (near) { ex = Math.max(-1, Math.min(1, (near.x * this.w - hx) / (R * 4))) * 1.8; ey = Math.max(-1, Math.min(1, (near.y - hy) / (R * 4))) * 1.4; }
+    const ry = this.blink > 0 ? .4 : 2.9;
+    c.fillStyle = '#F2F2EE';
+    c.beginPath(); c.ellipse(-5 + ex, -1.4 + ey, 1.6, ry, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(5 + ex, -1.4 + ey, 1.6, ry, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+  }
+}
+
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+class Look {
+  constructor(pane, dur = 40) {
+    this.pane = pane; this.dur = dur; this.N = 1400;
+    pane.innerHTML = `<canvas class="l-cv" role="img" aria-label="A generative ink drawing that builds over the break"></canvas><canvas class="l-new" aria-hidden="true"></canvas><p class="lab l-p"><span class="num l-n">0</span>% drawn. A new drawing every break</p>`;
+    this.cv = $('.l-cv', pane); this.nv = $('.l-new', pane); this.raf = 0; this.newSeed();
+    new ResizeObserver(() => this.size()).observe(this.cv);
+  }
+  newSeed() { this.seed = Math.floor(Math.random() * 1e6); this.t0 = performance.now(); this.drawn = 0; this.batchAt = 0; if (this.w) this.size(); }
+  size() {
+    const r = this.cv.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+    this.w = r.width; this.h = r.height;
+    for (const cv of [this.cv, this.nv]) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); cv.getContext('2d').setTransform(d, 0, 0, d, 0, 0); }
+    const n = this.drawn; this.drawn = 0; this.paint(this.cv, n);
+  }
+  field(x, y) { const s = this.seed % 1000 / 160, nx = x / this.w, ny = y / this.h; return Math.sin(nx * 3.2 + s) * 1.7 + Math.cos(ny * 4.1 - s * .7) * 1.4 + Math.sin((nx - ny) * 6.3 + s * 1.3) * .5; }
+  paint(cv, upto) {
+    const c = cv.getContext('2d'); if (!this.w) return;
+    c.lineCap = 'round';
+    const cx = this.w / 2, cy = this.h / 2, rx = this.w * .46, ryy = this.h * .5;
+    for (let i = this.drawn; i < upto; i++) {
+      const r = rng(this.seed * 7919 + i);
+      const x0 = r() * this.w, y0 = r() * this.h;
+      const dd = Math.hypot((x0 - cx) / rx, (y0 - cy) / ryy);
+      if (dd > 1 || r() > 1.05 - dd * .9) continue;
+      c.strokeStyle = `rgba(242,242,238,${(.18 + r() * .5).toFixed(2)})`; c.lineWidth = r() < .12 ? 1.4 : .8;
+      c.beginPath(); let x = x0, y = y0; c.moveTo(x, y);
+      const steps = 10 + Math.floor(r() * 16), st = Math.max(2, this.w / 260);
+      for (let k = 0; k < steps; k++) { const a = this.field(x, y); x += Math.cos(a) * st; y += Math.sin(a) * st; c.lineTo(x, y); }
+      c.stroke();
+    }
+    this.drawn = upto;
+  }
+  start() {
+    if (this.raf) return;
+    const loop = now => {
+      this.raf = requestAnimationFrame(loop);
+      const el = (now - this.t0) / 1000, p = Math.min(1, el / this.dur);
+      $('.l-n', this.pane).textContent = Math.floor(p * 100);
+      if (reduced()) {
+        const step = Math.floor(el / 5);
+        if (step !== this.batchAt || p >= 1) {
+          this.batchAt = step; const target = Math.floor(Math.min(1, step * 5 / this.dur) * this.N);
+          if (target > this.drawn) {
+            const from = this.drawn; const nc = this.nv.getContext('2d'); nc.clearRect(0, 0, this.w, this.h);
+            this.paint(this.nv, target); this.nv.classList.remove('on'); void this.nv.offsetWidth; this.nv.classList.add('on');
+            setTimeout(() => { const c = this.cv.getContext('2d'); c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(this.nv, 0, 0); c.restore(); nc.clearRect(0, 0, this.w, this.h); this.nv.classList.remove('on'); }, 260);
+            void from;
+          }
+        }
+      } else this.paint(this.cv, Math.floor(p * this.N));
+      if (el > this.dur + 3) { this.cv.getContext('2d').clearRect(0, 0, this.w, this.h); this.newSeed(); }
+    };
+    this.raf = requestAnimationFrame(loop);
+  }
+  stop() { cancelAnimationFrame(this.raf); this.raf = 0; }
+}
+
+/* ---------- the overlay ---------- */
+class Overlay {
+  constructor(el, o = {}) {
+    this.el = el; this.o = o; this.total = o.total || 102; this.left = o.left != null ? o.left : this.total; this.unknown = !!o.unknown;
+    el.innerHTML = `<svg class="hs-edge" aria-hidden="true"><rect class="e-track"/><rect class="e-run" pathLength="1000"/><rect class="e-dots"/></svg>
+    <div class="hs-in">
+      <div class="hs-top"><div class="hs-mark">${hoopSVG()}<span>halftime show</span></div>
+        <div class="hs-score"><div class="hs-clock" role="progressbar" aria-label="Time left in this break" aria-valuemin="0" aria-valuemax="${this.total}"><span class="hs-t num"></span><span class="lab hs-tl">left in this break</span></div>
+        <div class="lab hs-d">Dodged today <span class="num">14:30</span></div><div class="lab hs-d">This week <span class="num">1:52:10</span></div></div></div>
+      <div class="hs-stage"><div class="pane" data-pane="menu"></div><div class="pane" data-pane="words"></div><div class="pane" data-pane="trivia"></div><div class="pane" data-pane="catch"></div><div class="pane" data-pane="look"></div></div>
+      <div class="hs-foot"><div class="hs-tabs" role="tablist" aria-label="Halftime shows">${SHOWS.map((s, i) => `<button role="tab" data-show="${s.id}" aria-selected="false" aria-label="${s.name}"><span class="k">${i + 1}</span><span class="n">${s.name}</span></button>`).join('')}</div>
+      <button class="hs-notad">Not an ad <kbd>Alt Shift A</kbd></button></div>
+    </div>`;
+    if (this.unknown) el.classList.add('is-unknown');
+    this.pane = id => $(`[data-pane="${id}"]`, el);
+    this.menu(o.first);
+    this.shows = {};
+    const need = o.only ? [o.only] : ['words', 'trivia', 'catch', 'look'];
+    if (need.includes('words')) this.shows.words = new Words(this.pane('words'), this);
+    if (need.includes('trivia')) this.shows.trivia = new Trivia(this.pane('trivia'));
+    if (need.includes('catch')) this.shows.catch = new Catch(this.pane('catch'));
+    if (need.includes('look')) this.shows.look = new Look(this.pane('look'), o.lookDur || 40);
+    $$('.hs-tabs button', el).forEach(b => b.addEventListener('click', () => this.set(b.dataset.show)));
+    $('.hs-notad', el).addEventListener('click', () => o.onNotAd ? o.onNotAd() : this.flashNotAd());
+    el.addEventListener('keydown', e => this.key(e));
+    el.addEventListener('pointerdown', e => { if (!e.target.closest('button')) el.focus({ preventScroll: true }); });
+    this.visible = true; this.paintClock(true);
+    this.set(o.show || 'menu');
+  }
+  menu(first) {
+    const p = this.pane('menu');
+    p.innerHTML = `<p class="m-head">${this.unknown ? 'Ad break.' : `Ad break. <span class="m-t num"></span> left.`} Pick a halftime show.</p>${first ? '<p class="m-first">First break. The tab is muted and the ad is underneath. Pick something for the next <span class="m-t num"></span>.</p>' : ''}<ul class="hs-menu">${SHOWS.map((s, i) => `<li><button class="m-row${i === 0 ? ' is-default' : ''}" data-show="${s.id}"><span class="k">${i + 1}</span><span class="g">${GLYPH[s.id]}</span><span class="n">${s.name}</span><span class="d">${i === 0 && !first ? 'Last time, starts in <span class="m-c num">3</span>' : s.line}</span></button></li>`).join('')}</ul>`;
+    $$('.m-row', p).forEach(b => b.addEventListener('click', () => this.set(b.dataset.show)));
+  }
+  set(id) {
+    if (!this.shows[id] && id !== 'menu') return;
+    this.cur = id;
+    $$('.pane', this.el).forEach(p => p.classList.toggle('on', p.dataset.pane === id));
+    $$('.hs-tabs button', this.el).forEach(b => b.setAttribute('aria-selected', String(b.dataset.show === id)));
+    this.run();
+  }
+  run() { for (const [k, s] of Object.entries(this.shows)) { if (!s.start) continue; if (k === this.cur && this.visible) s.start(); else s.stop(); } }
+  key(e) {
+    const k = e.key.toLowerCase();
+    if (/^[1-4]$/.test(k) && this.cur !== 'trivia') { this.set(SHOWS[+k - 1].id); e.preventDefault(); return; }
+    if (this.cur === 'trivia' && /^[1-3]$/.test(k)) { this.shows.trivia.key(k); return; }
+    if (this.cur === 'trivia' && k === '4') { this.set('look'); return; }
+    const s = this.shows[this.cur];
+    if (s && s.key && (k.length === 1 || ['enter', 'backspace', 'arrowleft', 'arrowright'].includes(k))) { s.key(k === ' ' ? ' ' : k); if (k !== 'tab') e.preventDefault(); }
+  }
+  paintClock(instant) {
+    const run = $('.e-run', this.el), f = 1 - this.left / this.total;
+    if (instant) { run.style.transition = 'none'; run.getBoundingClientRect(); }
+    run.style.strokeDashoffset = String(-f * 1000);
+    if (instant) { run.getBoundingClientRect(); run.style.transition = ''; }
+    const t = this.unknown ? 'Ad break' : fmt(this.left);
+    $('.hs-t', this.el).textContent = t;
+    $('.hs-tl', this.el).style.display = this.unknown ? 'none' : '';
+    $$('.m-t', this.el).forEach(m => { m.textContent = fmt(this.left); });
+    $('.hs-clock', this.el).setAttribute('aria-valuenow', String(Math.round(this.left)));
+  }
+  tick() {
+    if (this.unknown) return;
+    this.left -= 1;
+    if (this.left < 0) { this.left = this.total; this.paintClock(true); return; }
+    if (reduced() && this.left % 5 !== 0 && this.left > 0) { $('.hs-t', this.el).textContent = fmt(this.left); return; }
+    this.paintClock(false);
+  }
+  flashNotAd() { const b = $('.hs-notad', this.el); const t = b.innerHTML; b.textContent = 'Marked as not an ad. Sound on.'; setTimeout(() => { b.innerHTML = t; }, 1800); }
+}
+
+const overlays = [];
+// the four shows, interactive
+const sov = new Overlay($('#sov'), { show: 'words', total: 102, left: 78 });
+overlays.push(sov);
+$$('[data-pick]').forEach(b => b.addEventListener('click', () => { sov.set(b.dataset.pick); }));
+const syncPick = () => $$('[data-pick]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.pick === sov.cur)));
+new MutationObserver(syncPick).observe($('#sov'), { subtree: true, attributes: true, attributeFilter: ['aria-selected'] });
+// static ones
+$$('.hs[data-static]').forEach(el => {
+  const show = el.dataset.static;
+  const ov = new Overlay(el, { show, only: show === 'menu' ? 'none' : show, first: !!el.dataset.first, unknown: !!el.dataset.unknown, total: +(el.dataset.total || 102), left: el.dataset.total ? +el.dataset.total : 102, lookDur: el.dataset.fast ? 12 : 40 });
+  overlays.push(ov);
+});
+
+// run clocks once a second; pause shows that are off screen
+setInterval(() => overlays.forEach(o => o.tick()), 1000);
+const io = new IntersectionObserver(es => es.forEach(e => { const o = overlays.find(x => x.el === e.target); if (o) { o.visible = e.isIntersecting; o.run(); } }), { threshold: 0.05 });
+overlays.forEach(o => io.observe(o.el));
+document.addEventListener('visibilitychange', () => overlays.forEach(o => { o.visible = !document.hidden; o.run(); }));
+
+/* ---------- the moment, on a loop ---------- */
+const mframe = $('#mframe'), mov = $('#mov'), mback = $('#mback'), mtab = $('#mtab'), msnd = $('#msnd');
+let mo = null, token = 0;
+const steps = $$('#msteps li');
+const stepOn = i => steps.forEach((s, j) => s.classList.toggle('on', j === i));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function moment() {
+  const my = ++token; const alive = () => my === token;
+  mov.classList.remove('is-open'); mback.classList.remove('on'); mframe.classList.remove('is-ad'); mtab.classList.remove('is-muted'); msnd.textContent = 'Sound on';
+  if (!mo) { mo = new Overlay(mov, { show: 'menu', total: 8, left: 8, only: 'words', onNotAd: () => {} }); mo.tick = () => {}; }
+  else { mo.menu(); mo.shows.words.ai = 0; mo.shows.words.reset(['crane', 'shade']); mo.left = 8; mo.paintClock(true); mo.set('menu'); }
+  stepOn(0); await wait(1600); if (!alive()) return;
+  mtab.classList.add('is-muted'); msnd.textContent = 'Muted by Halftime Show'; mframe.classList.add('is-ad'); stepOn(1);
+  await wait(250); if (!alive()) return;
+  mov.classList.add('is-open'); stepOn(2);
+  await wait(950); if (!alive()) return;
+  stepOn(3);
+  for (const n of [2, 1]) { await wait(650); if (!alive()) return; const c = $('.m-c', mov); if (c) c.textContent = n; }
+  await wait(650); if (!alive()) return;
+  mo.set('words'); stepOn(4);
+  for (let s = 0; s < 8; s++) { await wait(1000); if (!alive()) return; mo.left = 7 - s; mo.paintClock(false); if (s === 2) { mo.shows.words.cur = 'pa'; mo.shows.words.paint(); } if (s === 4) { mo.shows.words.cur = 'pau'; mo.shows.words.paint(); } }
+  mtab.classList.remove('is-muted'); msnd.textContent = 'Sound on'; mframe.classList.remove('is-ad'); mov.classList.remove('is-open'); stepOn(5);
+  await wait(reduced() ? 160 : 500); if (!alive()) return;
+  mback.innerHTML = BACK('0:08'); mback.classList.add('on'); stepOn(6);
+  await wait(4000); if (!alive()) return;
+  mback.classList.remove('on');
+  await wait(1400); if (!alive()) return;
+  moment();
+}
+moment();
+
+/* ---------- motion specimens on a beat ---------- */
+const mgrid = $('#mgrid'), press = $('.press-demo'), tdemo = $('#tdemo');
+const TD = ['p', 'a', 'u', 's', 'e'], TS = ['hit', 'near', 'no', 'hit', 'no'];
+function tiles(on) {
+  tdemo.innerHTML = TD.map((c, i) => `<div class="w-tile${on ? '' : ' has'}" style="--d:${reduced() ? 0 : i * 60}ms">${c}</div>`).join('');
+  if (on) { tdemo.getBoundingClientRect(); $$('.w-tile', tdemo).forEach((t, i) => { t.dataset.s = TS[i]; t.classList.remove('has'); }); }
+}
+tiles(false);
+let beat = false, beatTimer = 0;
+function doBeat() {
+  beat = !beat; mgrid.classList.toggle('beat', beat);
+  press.classList.add('is-pressed'); setTimeout(() => press.classList.remove('is-pressed'), 150);
+  if (beat) { tiles(false); setTimeout(() => tiles(true), 60); }
+  const nd = $('.note-demo', mgrid); nd.classList.toggle('on', beat);
+}
+function startBeat() { clearInterval(beatTimer); beat = false; mgrid.classList.remove('beat'); tiles(false); setTimeout(doBeat, 400); beatTimer = setInterval(doBeat, 2600); }
+startBeat();
+
+/* ---------- page controls ---------- */
+const themes = ['auto', 'light', 'dark'], tnames = { auto: 'auto', light: 'paper', dark: 'ink' };
+$('#theme').addEventListener('click', e => { const n = themes[(themes.indexOf(root.dataset.theme) + 1) % 3]; root.dataset.theme = n; e.currentTarget.textContent = 'Theme: ' + tnames[n]; });
+const mbtn = $('#motion');
+const syncMotion = () => { const r = reduced(); mbtn.setAttribute('aria-pressed', String(r)); mbtn.textContent = 'Reduced motion: ' + (r ? 'on' : 'off'); };
+syncMotion();
+mbtn.addEventListener('click', () => { root.dataset.motion = reduced() ? 'full' : 'reduce'; syncMotion(); moment(); startBeat(); });
+$('#replay').addEventListener('click', () => { moment(); startBeat(); $('#moment').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' }); });
+
+// back note demo
+$('#bagain').addEventListener('click', () => { const b = $('#bback'); b.classList.remove('on'); setTimeout(() => b.classList.add('on'), 400); });
+setTimeout(() => $('#bback').classList.add('on'), 600);
+
+// popup bits
+$$('.pp-show').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; $$('.chip', g).forEach(c => c.setAttribute('aria-pressed', String(c === b))); }));
+$$('.switch').forEach(s => s.addEventListener('click', () => { const on = s.getAttribute('aria-checked') !== 'true'; s.setAttribute('aria-checked', String(on)); s.firstElementChild.textContent = on ? 'On' : 'Off'; }));
+$$('.pp-pause').forEach(b => b.addEventListener('click', () => { const d = b.closest('.pp-sec').querySelector('.pp-drawer'); const on = !d.classList.contains('on'); d.classList.toggle('on', on); d.setAttribute('aria-hidden', String(!on)); $$('button', d).forEach(x => x.tabIndex = on ? 0 : -1); b.setAttribute('aria-expanded', String(on)); }));
+$$('.pp-mark').forEach(b => b.addEventListener('click', () => { const t = b.textContent; b.textContent = t.includes("isn't") ? 'Marked. Sound on.' : 'Marked. Tab muted.'; setTimeout(() => { b.textContent = t; }, 1600); }));
+$('.op-reset').addEventListener('click', () => $('.confirm').classList.add('on'));
+$$('.op-yes, .op-no').forEach(b => b.addEventListener('click', () => $('.confirm').classList.remove('on')));
+
+// swatches
+const ROLES = [['--bg', 'paper', 'ink'], ['--surface', 'white', 'ink-tile'], ['--fg', 'ink', 'ink-text'], ['--soft', '#2A2A28', 'ink-soft'], ['--muted', 'mute', 'ink-mute'], ['--rule', 'line', 'ink-line'], ['--fill', 'well', 'ink-tile-line'], ['--inv-bg', 'ink', 'ink-text']];
+for (const [id, col] of [['#sw-light', 1], ['#sw-dark', 2]]) {
+  const el = $(id);
+  el.innerHTML = ROLES.map(r => `<div class="sw"><span class="chipc" style="background:var(${r[0]})"></span><span>${r[0].slice(2)}</span><code></code></div>`).join('');
+  $$('.sw', el).forEach((sw, i) => { const v = getComputedStyle(sw.querySelector('.chipc')).backgroundColor; const m = v.match(/\d+/g); $('code', sw).textContent = ROLES[i][col] + (m ? ' #' + m.slice(0, 3).map(x => (+x).toString(16).padStart(2, '0')).join('').toUpperCase() : ''); });
+}
+})();
+</script>
+</body>
+</html>

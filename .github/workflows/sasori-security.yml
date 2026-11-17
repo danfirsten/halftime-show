@@ -1,0 +1,54 @@
+# Sasori security scan: free stand-ins for the GitHub features private personal repos don't get (secret scanning,
+# code scanning). Runs on PRs and main; the merge train treats a red result like any other red check.
+# One job, because GitHub bills every job by the whole minute: gitleaks over the commits this PR or push adds, and the
+# dependency audit (.claude/sasori/audit.sh) when they change a manifest or lockfile. Advisories published about
+# dependencies nobody changed are caught by the nightly audit (sasori-audit.yml), which the train doesn't wait for.
+name: Security
+
+# Session CI (.sasori/config.json "ci": "sessions"): runs only when started by hand. `sasori ci` runs the checks.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.event.pull_request.number || github.sha }}   # every commit on main keeps its result
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  scan:
+    name: Secrets and dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: What changed
+        id: diff
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          range=""
+          if [ -n "$BASE_REF" ]; then range="origin/$BASE_REF..HEAD"
+          elif [ -n "$BEFORE" ] && ! [[ "$BEFORE" =~ ^0+$ ]] && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then range="$BEFORE..HEAD"; fi
+          echo "range=$range" >> "$GITHUB_OUTPUT"
+          if [ -z "$range" ]; then echo "audit=true" >> "$GITHUB_OUTPUT"; echo "Everything: no earlier commit to compare with."; exit 0; fi
+          git diff --name-only "${range/../...}" > "$RUNNER_TEMP/changed"
+          if grep -qE '(^|/)(package\.json|package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|requirements[^/]*\.txt|pyproject\.toml|poetry\.lock|uv\.lock|Pipfile\.lock)$|^\.sasori/config\.json$' "$RUNNER_TEMP/changed"; then
+            echo "audit=true" >> "$GITHUB_OUTPUT"; echo "A manifest or lockfile changed: auditing."
+          else echo "audit=false" >> "$GITHUB_OUTPUT"; echo "No manifest or lockfile changed: the nightly audit covers the rest."; fi
+      # The gitleaks CLI in its official image, pinned. (gitleaks-action fails on a repo's first push: it scans from
+      # the first commit's parent, which a root commit doesn't have.)
+      - name: gitleaks
+        env:
+          RANGE: ${{ steps.diff.outputs.range }}
+        run: |
+          if [ -n "$RANGE" ]; then opts="--log-opts=$RANGE"; else opts=""; fi
+          docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.24.3 git --redact --no-banner $opts .
+      - uses: oven-sh/setup-bun@v2
+        if: ${{ !cancelled() && steps.diff.outputs.audit == 'true' && hashFiles('**/bun.lock', '**/bun.lockb') != '' }}
+      - name: Audit dependencies
+        if: ${{ !cancelled() && steps.diff.outputs.audit == 'true' }}
+        run: bash .claude/sasori/audit.sh

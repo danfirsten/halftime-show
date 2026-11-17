@@ -1,0 +1,8 @@
+node_modules/
+.output/
+.wxt/
+.env*
+!.env.example
+.data/
+qa-report/
+*.zip

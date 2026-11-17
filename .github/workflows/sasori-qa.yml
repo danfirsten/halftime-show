@@ -1,0 +1,110 @@
+# Sasori QA: builds the app, photographs every route in .sasori/qa.json at 390, 768 and 1440 px in light and dark,
+# and checks overflow, accessibility (axe), console errors, broken assets, clipped text, focus, metadata and motion,
+# and films a frame strip of every interaction listed there.
+# One comment on the PR, edited in place on every push, with the results and the screenshots. Screenshots for
+# a private repo live on the `sasori-qa` branch (one folder per PR) so GitHub serves them to people who can see it.
+name: QA
+
+# Session CI (.sasori/config.json "ci": "sessions"): runs only when started by hand. `sasori ci` runs the checks.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: qa-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  qa:
+    name: Screens and accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 2 }   # a PR checks out its merge commit: HEAD^1 is the base, so HEAD^1..HEAD is the PR's change
+      - name: Is QA set up here, and does this change touch the app?
+        id: cfg
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          on=false; { [ -f .sasori/qa.json ] || compgen -G '.sasori/qa.d/*.json' >/dev/null; } && on=true || echo "No .sasori/qa.json or qa.d/, so nothing to photograph."
+          # A PR that only touches docs and agent instructions can't change a screen: it passes without building (a QA
+          # run is the slowest job here). Docs means top-level Markdown, docs/, .claude/ skills and knowledge, and the
+          # templates; Markdown inside the app (src/content/privacy.md) is app code and is shot. Main always gets the
+          # full run, so every commit there has pictures.
+          if [ "$on" = true ] && [ "$EVENT" = pull_request ] && git diff --name-only HEAD^1 HEAD > "$RUNNER_TEMP/changed" 2>/dev/null; then
+            if ! grep -qvE '^[^/]+\.md$|^docs/|^LICEN[CS]E|^\.claude/skills/|^\.claude/sasori/[^/]+\.md$|^\.github/ISSUE_TEMPLATE/|^\.github/pull_request_template|^\.gitignore$' "$RUNNER_TEMP/changed"; then
+              on=false; echo "This PR changes no app files (docs and agent instructions only), so QA passes without photographing." | tee -a "$GITHUB_STEP_SUMMARY"
+            else echo "changed=$RUNNER_TEMP/changed" >> "$GITHUB_OUTPUT"; fi
+          fi
+          echo "on=$on" >> "$GITHUB_OUTPUT"
+          pm=npm; [ -f pnpm-lock.yaml ] && pm=pnpm; [ -f yarn.lock ] && pm=yarn; { [ -f bun.lockb ] || [ -f bun.lock ]; } && pm=bun
+          echo "pm=$pm" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v4
+        if: steps.cfg.outputs.on == 'true'
+        with: { node-version: 22 }
+      - uses: oven-sh/setup-bun@v2
+        if: steps.cfg.outputs.on == 'true' && steps.cfg.outputs.pm == 'bun'
+      # Two caches: the package cache and the browser, keyed by the lockfile (saved once, not on every run, which
+      # was uploading hundreds of MB each time), and the build cache, keyed by commit and restored from the latest.
+      - name: Cache the packages and the browser
+        if: steps.cfg.outputs.on == 'true'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: qa-deps-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/pnpm-lock.yaml', '**/yarn.lock', '**/bun.lock*') }}
+          restore-keys: qa-deps-${{ runner.os }}-
+      - name: Cache the build
+        if: steps.cfg.outputs.on == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: qa-next-${{ runner.os }}-${{ github.sha }}
+          restore-keys: qa-next-${{ runner.os }}-
+      - name: Install, build, start
+        if: steps.cfg.outputs.on == 'true'
+        run: |
+          pm=${{ steps.cfg.outputs.pm }}
+          case "$pm" in
+            npm) npm ci ;;
+            pnpm) corepack enable; pnpm install --frozen-lockfile ;;
+            yarn) corepack enable; if [ -f .yarnrc.yml ]; then yarn install --immutable; else yarn install --frozen-lockfile; fi ;;
+            bun) bun install --frozen-lockfile ;;
+          esac
+          npx playwright install chromium   # a no-op when the cached browser matches
+          # The runner image already has Chrome's system libraries; install them (apt, about a minute) only if the
+          # browser can't start without them
+          node -e "require('playwright').chromium.launch().then(b => b.close())" 2>/dev/null || npx playwright install-deps chromium
+          if [ ! -d node_modules/axe-core ]; then if [ "$pm" = npm ]; then npm i --no-save axe-core@4; else YARN_ENABLE_IMMUTABLE_INSTALLS=false $pm add axe-core@4; fi; fi   # Yarn refuses lockfile changes on CI otherwise
+          $pm run build
+          (jq -e '.scripts["db:seed"]' package.json >/dev/null && $pm run db:seed || true)
+          (PORT=3000 $pm run start > "$RUNNER_TEMP/server.log" 2>&1 &)
+          for i in $(seq 60); do curl -sf http://localhost:3000 >/dev/null && break; sleep 2; done
+      - name: Photograph and check
+        id: shoot
+        if: steps.cfg.outputs.on == 'true'
+        run: |
+          changed=(); [ -n "${{ steps.cfg.outputs.changed }}" ] && changed=(--changed "${{ steps.cfg.outputs.changed }}")
+          rc=0; node .claude/sasori/qa/shoot.mjs --out "$RUNNER_TEMP/qa" "${changed[@]}" || rc=$?
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
+          cat "$RUNNER_TEMP/qa/report.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: steps.cfg.outputs.on == 'true'
+        with: { name: qa-screenshots, path: "${{ runner.temp }}/qa", retention-days: 7 }
+      - name: Post the report
+        if: steps.cfg.outputs.on == 'true' && env.PR != ''
+        run: bash .claude/sasori/qa-comment.sh "$RUNNER_TEMP/qa" "$GITHUB_REPOSITORY" "$PR" "$GITHUB_SHA"
+      - name: Fail on QA failures
+        if: steps.cfg.outputs.on == 'true' && steps.shoot.outputs.rc != '0'
+        run: |
+          echo "QA found problems. See the PR comment or the job summary."; exit 1

@@ -1,0 +1,26 @@
+{
+  "base": "main",
+  "checks": [
+    "npm run typecheck",
+    "npm run lint",
+    "CI=1 npm test",
+    "npm run e2e"
+  ],
+  "workflows": {
+    "CI": "ci.yml",
+    "QA": "sasori-qa.yml",
+    "Security": "sasori-security.yml"
+  },
+  "ci": "sessions",
+  "hotFiles": [
+    "package.json",
+    "package-lock.json",
+    "wxt.config.ts",
+    "entrypoints/background.ts",
+    "entrypoints/hulu.content.ts",
+    "src/styles/tokens.css"
+  ],
+  "mergeMethod": "squash",
+  "trainMode": "fast",
+  "perRepoLanes": 5
+}

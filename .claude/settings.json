@@ -1,0 +1,77 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh",
+            "timeout": 30
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh --mcp",
+            "timeout": 30
+          }
+        ],
+        "matcher": "mcp__github__merge_pull_request"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh --mcp",
+            "timeout": 30
+          }
+        ],
+        "matcher": "mcp__github__enable_pr_auto_merge"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh --mcp",
+            "timeout": 30
+          }
+        ],
+        "matcher": "mcp__github__push_files"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh --mcp",
+            "timeout": 30
+          }
+        ],
+        "matcher": "mcp__github__create_or_update_file"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/tripwire.sh --mcp",
+            "timeout": 30
+          }
+        ],
+        "matcher": "mcp__github__delete_file"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR\"/.claude/sasori/session-start.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

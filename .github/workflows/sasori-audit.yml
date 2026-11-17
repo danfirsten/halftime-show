@@ -1,0 +1,38 @@
+# Sasori nightly audit: the whole history through gitleaks and every dependency through the audit, because advisories
+# are published about code nobody changed. Not a required workflow: a new advisory isn't the latest merge's fault, so
+# the train doesn't wait for it and never reverts over it. A failure opens (or comments on) one issue.
+name: Dependency audit (nightly)
+
+# Session CI (.sasori/config.json "ci": "sessions"): runs only when started by hand. `sasori ci` runs the checks.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: Nightly audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: oven-sh/setup-bun@v2
+        if: hashFiles('**/bun.lock', '**/bun.lockb') != ''
+      - name: gitleaks and the dependency audit
+        run: |
+          set +e; rc=0
+          docker run --rm -v "$PWD:/repo" -w /repo zricethezav/gitleaks:v8.24.3 git --redact --no-banner . || rc=1
+          bash .claude/sasori/audit.sh || rc=1
+          exit $rc
+      - name: Open an issue
+        if: failure()
+        run: |
+          url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          n=$(gh api "repos/$GITHUB_REPOSITORY/issues?state=open&labels=security&per_page=100" -q '[.[] | select(.title == "Nightly audit failing")][0].number // empty')
+          if [ -n "$n" ]; then gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$n/comments" -f body="Still failing: $url" >/dev/null
+          else gh api -X POST "repos/$GITHUB_REPOSITORY/issues" -f title="Nightly audit failing" -f body="The nightly dependency and secret audit failed: $url. Fix or record the finding (\`.sasori/config.json\` \`audit\`, with the reason)." -f 'labels[]=security' >/dev/null; fi

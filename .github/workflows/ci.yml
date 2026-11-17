@@ -1,0 +1,23 @@
+name: CI
+
+# Session CI: the Sasori conductor runs these checks in a cloud session and
+# posts the statuses, so this only runs when started by hand.
+# Session CI (.sasori/config.json "ci": "sessions"): runs only when started by hand. `sasori ci` runs the checks.
+on:
+  workflow_dispatch: {}
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run e2e

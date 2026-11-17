@@ -1,0 +1,256 @@
+#!/bin/bash
+# sasori init <repo> [--base main] [--conductor] [--no-qa] [--allow-dirty]   vendor the Sasori kit into a repo (idempotent)
+# sasori sync                                                     regenerate this repo's own .claude/ (the conductor kit)
+# sasori train <owner/name> [...]                                  run the merge train (scripts/merge-train.sh)
+# sasori ci <owner/name> <sha> [--dry-run] [--only CI,QA]          session CI at a commit; posts sasori/<name> statuses
+# sasori labels owner/name                                        create or update the Sasori labels in a repo
+# sasori doctor [repo]                                            check the tools and the kit
+set -euo pipefail
+SK="$(cd "$(dirname "$0")/.." && pwd)"          # .../sasori
+ROOT="$(cd "$SK/.." && pwd)"                    # the conductor repo
+TRACK_SKILLS="track review-gate design-review"
+CONDUCTOR_SKILLS="conductor blitz launch merge-train"
+KNOWLEDGE="quality-bar.md design-bar.md stack.md protocol.md issue.md cloud.md gates.md goals.md labels.json"
+
+say() { printf '%s\n' "$*"; }
+copy_dir() { rm -rf "$2"; mkdir -p "$(dirname "$2")"; cp -R "$1" "$2"; }
+
+add_hook() { # settings event matcher command
+  local set=$1 ev=$2 m=$3 cmd=$4
+  jq -e --arg e "$ev" --arg m "$m" --arg h "$cmd" \
+    'any(.hooks[$e][]?; (.matcher // "") == $m and any(.hooks[]?; .command == $h))' "$set" >/dev/null && return 0
+  jq --arg e "$ev" --arg m "$m" --arg h "$cmd" \
+    '.hooks[$e] = ((.hooks[$e] // []) + [({hooks: [{type: "command", command: $h, timeout: 30}]} + (if $m == "" then {} else {matcher: $m} end))])' \
+    "$set" > "$set.tmp" && mv "$set.tmp" "$set"
+}
+
+kit() { # dest-repo conductor(0|1) [qa(1|0)]
+  local d=$1 c=$2 qa=${3:-1} s w
+  mkdir -p "$d/.claude/sasori/qa" "$d/.claude/skills"
+  for s in $TRACK_SKILLS; do copy_dir "$SK/skills/$s" "$d/.claude/skills/$s"; done
+  copy_dir "$SK/vendor/frontend-design" "$d/.claude/skills/frontend-design"
+  if [ "$c" = 1 ]; then for s in $CONDUCTOR_SKILLS; do copy_dir "$SK/skills/$s" "$d/.claude/skills/$s"; done; fi
+  if [ "$c" = 1 ] && [ "$d" != "$ROOT" ]; then cp "$SK/board.json" "$d/.claude/sasori/board.json"; fi   # a project that conducts itself writes the same board
+  for s in $KNOWLEDGE; do cp "$SK/knowledge/$s" "$d/.claude/sasori/$s"; done
+  cp "$SK/vendor/web-interface-guidelines/guidelines.md" "$d/.claude/sasori/web-interface-guidelines.md"
+  cp "$SK/scripts/tripwire.sh" "$SK/scripts/merge-train.sh" "$SK/scripts/labels.sh" "$SK/scripts/session-start.sh" "$SK/scripts/audit.sh" "$SK/scripts/qa-comment.sh" "$SK/scripts/ci.sh" "$d/.claude/sasori/"
+  cp "$SK/kit/qa/shoot.mjs" "$SK/kit/qa/motion.mjs" "$d/.claude/sasori/qa/"
+  cp "$SK/bin/sasori" "$d/.claude/sasori/sasori"   # so a project session can run `bash .claude/sasori/sasori doctor .`
+  chmod +x "$d/.claude/sasori/"*.sh
+
+  local set="$d/.claude/settings.json"
+  [ -f "$set" ] || echo '{}' > "$set"
+  add_hook "$set" PreToolUse Bash 'bash "$CLAUDE_PROJECT_DIR"/.claude/sasori/tripwire.sh'
+  for t in merge_pull_request enable_pr_auto_merge push_files create_or_update_file delete_file; do
+    add_hook "$set" PreToolUse "mcp__github__$t" 'bash "$CLAUDE_PROJECT_DIR"/.claude/sasori/tripwire.sh --mcp'
+  done
+  add_hook "$set" SessionStart "" 'bash "$CLAUDE_PROJECT_DIR"/.claude/sasori/session-start.sh'
+
+  # Project repos get the workflows (with --conductor too: a project that conducts itself); the factory keeps its own
+  if [ "$d" != "$ROOT" ]; then
+    mkdir -p "$d/.github/workflows"
+    for w in "$SK"/kit/workflows/*.yml; do
+      [ "$qa" = 0 ] && [ "$(basename "$w")" = sasori-qa.yml ] && continue
+      cp "$w" "$d/.github/workflows/"
+    done
+  fi
+}
+
+guess_dir() { # dir -> JSON array of commands for the manifest there ([] when none)
+  local d=$1
+  if [ -f "$d/package.json" ]; then
+    local pm=npm; [ -f "$d/pnpm-lock.yaml" ] && pm=pnpm; [ -f "$d/yarn.lock" ] && pm=yarn; { [ -f "$d/bun.lockb" ] || [ -f "$d/bun.lock" ]; } && pm=bun
+    jq -c --arg pm "$pm" '[.scripts // {} | keys[] as $k | select($k | IN("typecheck","lint","test","build"))
+       | {typecheck:0, lint:1, test:2, build:3}[$k] as $o | {o:$o, c:(if $k == "test" then "CI=1 \($pm) test" else "\($pm) run \($k)" end)}]
+       | sort_by(.o) | map(.c)' "$d/package.json"
+  elif [ -f "$d/pyproject.toml" ]; then echo '["uv run ruff check .", "uv run pytest -q"]'
+  elif [ -f "$d/Cargo.toml" ]; then echo '["cargo clippy -- -D warnings", "cargo test"]'
+  elif [ -f "$d/go.mod" ]; then echo '["go vet ./...", "go test ./..."]'
+  elif [ -f "$d/Makefile" ] && grep -q '^test:' "$d/Makefile"; then echo '["make test"]'
+  else echo '[]'; fi
+}
+
+guess_checks() { # repo -> JSON array of commands. No manifest at the root: one level down, as `cd <dir> && ...`
+  local d=$1 c sub all='[]' dirs=""
+  c=$(guess_dir "$d")
+  if [ "$c" != "[]" ] || [ -f "$d/package.json" ] || [ -f "$d/pyproject.toml" ] || [ -f "$d/Cargo.toml" ] || [ -f "$d/go.mod" ]; then echo "$c"; return; fi
+  for sub in "$d"/*/package.json; do
+    [ -f "$sub" ] || continue; sub=$(basename "$(dirname "$sub")"); [ "$sub" = node_modules ] && continue
+    c=$(guess_dir "$d/$sub"); [ "$c" = "[]" ] && continue
+    all=$(jq -c --arg s "$sub" --argjson c "$c" '. + ($c | map("cd \($s) && \(.)"))' <<< "$all"); dirs="$dirs $sub"
+  done
+  [ -n "$dirs" ] && say "no manifest at the root, so checks come from:$dirs (each as cd <dir> && ...)." >&2
+  echo "$all"
+}
+
+dispatch_only() { # repo: session CI ("ci": "sessions") runs no Actions jobs, so every workflow there (but the config's
+  # "actionsKeep" list) only runs when started by hand. Rewrites each file's top-level on: block, keeping a
+  # workflow_dispatch's inputs and a workflow_call; checks the result parses to the same workflow first; idempotent.
+  python3 - "$1" <<'PY'
+import glob, json, os, re, sys, yaml
+d = sys.argv[1]
+try: keep = set(json.load(open(os.path.join(d, ".sasori/config.json"))).get("actionsKeep", []))
+except Exception: keep = set()
+NOTE = '# Session CI (.sasori/config.json "ci": "sessions"): runs only when started by hand. `sasori ci` runs the checks.\n'
+for f in sorted(glob.glob(os.path.join(d, ".github/workflows/*.y*ml"))):
+    name = os.path.basename(f)
+    if name in keep: continue
+    text = open(f).read()
+    try: wf = yaml.safe_load(text)
+    except Exception: print(f"!! {name}: doesn't parse, left alone", file=sys.stderr); continue
+    if not isinstance(wf, dict): continue
+    on = wf.get("on", wf.get(True))
+    on = {k: None for k in on} if isinstance(on, list) else ({on: None} if isinstance(on, str) else (on or {}))
+    new = {"workflow_dispatch": on.get("workflow_dispatch") or {}}
+    if "workflow_call" in on: new["workflow_call"] = on["workflow_call"]
+    if set(on) == set(new) and on.get("workflow_dispatch") == new["workflow_dispatch"]: continue
+    lines = text.splitlines(keepends=True); out = []; i = 0; done = False
+    while i < len(lines):
+        if not done and re.match(r"""^(on|"on"|'on')\s*:""", lines[i]):
+            j = i + 1
+            while j < len(lines) and (lines[j].strip() == "" or lines[j].startswith((" ", "\t", "#", "- "))): j += 1
+            while j > i + 1 and lines[j - 1].strip() == "": j -= 1          # keep the blank line before the next key
+            if out[-1:] == [NOTE]: out.pop()
+            body = yaml.safe_dump(new, default_flow_style=False, sort_keys=False)
+            out += [NOTE, "on:\n"] + ["  " + l + "\n" for l in body.splitlines()]
+            i = j; done = True; continue
+        out.append(lines[i]); i += 1
+    result = "".join(out)
+    try:
+        got = yaml.safe_load(result); got_on = got.get("on", got.get(True))
+        ok = done and got_on == new and {k: v for k, v in got.items() if k not in ("on", True)} == {k: v for k, v in wf.items() if k not in ("on", True)}
+    except Exception: ok = False
+    if not ok: print(f"!! {name}: couldn't make it dispatch-only safely, left alone (edit its on: by hand)", file=sys.stderr); continue
+    open(f, "w").write(result); print(name)
+PY
+}
+
+foreign_qa() { # repo -> the repo's own workflow named QA, if any (not Sasori's)
+  local f
+  for f in "$1"/.github/workflows/*.yml "$1"/.github/workflows/*.yaml; do
+    [ -f "$f" ] && [ "$(basename "$f")" != sasori-qa.yml ] && grep -qE "^name: *['\"]?QA['\"]? *$" "$f" && { echo "${f#"$1"/}"; return 0; }
+  done
+  return 1
+}
+
+case "${1:-}" in
+  init|sync) [ -d "$SK/kit" ] || { say "this is a project's copy of the Sasori CLI: it runs doctor. Run $1 from the factory (sasori/bin/sasori)."; exit 1; } ;;
+esac
+case "${1:-}" in
+  init)
+    shift; dest=""; base=""; conductor=0; qa=1; dirty_ok=${SASORI_ALLOW_DIRTY:-0}
+    while [ $# -gt 0 ]; do
+      case "$1" in --base) base=$2; shift ;; --conductor) conductor=1 ;; --no-qa) qa=0 ;; --allow-dirty) dirty_ok=1 ;; *) dest=$1 ;; esac; shift
+    done
+    [ -n "$dest" ] && [ -d "$dest" ] || { say "usage: sasori init <repo> [--base main] [--conductor] [--no-qa] [--allow-dirty]"; exit 1; }
+    dest=$(cd "$dest" && pwd)
+    # The kit is copied from this working tree, so local edits would ship in the PR. Run it from a clean origin/main.
+    if [ "$dirty_ok" != 1 ] && [ -n "$(git -C "$ROOT" status --porcelain -- sasori 2>/dev/null)" ]; then
+      say "refusing: $ROOT has uncommitted changes under sasori/, and they would ship in the kit."
+      say "Run init from a clean checkout of origin/main: git -C $ROOT fetch origin main && git -C $ROOT worktree add --detach /tmp/sasori-main origin/main,"
+      say "then bash /tmp/sasori-main/sasori/bin/sasori init $dest. (--allow-dirty to do it anyway.)"
+      exit 1
+    fi
+    if here=$(git -C "$ROOT" rev-parse -q HEAD 2>/dev/null) && main=$(git -C "$ROOT" rev-parse -q --verify origin/main 2>/dev/null) && [ "$here" != "$main" ]; then
+      say "note: the factory here is at ${here:0:7}, not origin/main (${main:0:7}); the kit is copied from what's checked out."
+    fi
+    if [ "$qa" = 1 ] && own=$(foreign_qa "$dest"); then
+      qa=0; say "not adding sasori-qa.yml: $own is already a workflow named QA. Point design-review at its report (--no-qa does this on purpose)."
+    fi
+    kit "$dest" "$conductor" "$qa"
+    cm="$dest/CLAUDE.md"
+    if ! grep -q '<!-- sasori -->' "$cm" 2>/dev/null; then
+      { [ -s "$cm" ] && printf '\n'; cat "$SK/kit/CLAUDE.sasori.md"; } >> "$cm"
+    fi
+    cfg="$dest/.sasori/config.json"
+    if [ ! -f "$cfg" ]; then
+      mkdir -p "$dest/.sasori"
+      [ -n "$base" ] || base=$(git -C "$dest" symbolic-ref -q --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)
+      [ -n "$base" ] || base=$(git -C "$dest" branch --show-current 2>/dev/null || true); base=${base:-main}
+      jq -n --arg b "$base" --argjson c "$(guess_checks "$dest")" --argjson qa "$qa" \
+        '{base:$b, checks:$c, workflows:({CI:"ci.yml"} + (if $qa == 1 then {QA:"sasori-qa.yml"} else {} end) + {Security:"sasori-security.yml"}),
+          ci:"sessions", hotFiles:[], mergeMethod:"squash", trainMode:"fast", perRepoLanes:5}' > "$cfg"
+      say "wrote .sasori/config.json (base $base). Check that \"checks\" is exactly what CI runs, and that CI is .github/workflows/ci.yml, named CI, with a workflow_dispatch trigger and no branch filter on pull_request."
+    fi
+    done_=$(dispatch_only "$dest" | paste -sd' ' -)
+    say "session CI: no Actions jobs. ${done_:+Made dispatch-only: $done_. }The conductor's train runs the checks (sasori ci) and merges on their statuses."
+    if [ "$qa" = 1 ] && [ ! -f "$dest/.sasori/qa.json" ] && [ -f "$dest/package.json" ] && jq -e '.dependencies.next // .devDependencies.next' "$dest/package.json" >/dev/null 2>&1; then
+      echo '{"baseUrl": "http://localhost:3000", "routes": ["/"], "public": ["/"], "widths": [390, 768, 1440], "interactions": [], "motion": {"allow": []}}' | jq . > "$dest/.sasori/qa.json"
+      say "wrote .sasori/qa.json: add every route people see, and the interactions and orchestrated moment docs/design.md names."
+    fi
+    say "Sasori kit in $dest$([ "$conductor" = 1 ] && echo ' (with the conductor skills)')."
+    ;;
+
+  sync)
+    kit "$ROOT" 1
+    [ -f "$ROOT/.sasori/config.json" ] && dispatch_only "$ROOT" >/dev/null
+    say "Regenerated $ROOT/.claude from sasori/."
+    ;;
+
+  train) shift; [ $# -gt 0 ] && [[ "$1" != -* ]] && set -- --repo "$@"
+    mts="$SK/scripts/merge-train.sh"; [ -f "$mts" ] || mts="$(dirname "$0")/merge-train.sh"   # the factory's, or a project's copy
+    exec bash "$mts" "$@" ;;
+  ci)
+    shift; [ $# -ge 2 ] || { say "usage: sasori ci <owner/name> <sha> [--dry-run] [--only CI,QA]"; exit 1; }
+    repo=$1 sha=$2; shift 2
+    cis="$SK/scripts/ci.sh"; [ -f "$cis" ] || cis="$(dirname "$0")/ci.sh"   # the factory's, or a project's copy beside this
+    # Posting statuses is the conductor's: the factory's own CLI may; a project's copy only with --dry-run
+    if [ -d "$SK/kit" ]; then SASORI_CI_POST=1 exec bash "$cis" --repo "$repo" --sha "$sha" "$@"; fi
+    exec bash "$cis" --repo "$repo" --sha "$sha" "$@" ;;
+  labels) shift; lb="$SK/scripts/labels.sh"; [ -f "$lb" ] || lb="$(dirname "$0")/labels.sh"; exec bash "$lb" "$@" ;;
+
+  doctor)
+    d=${2:-.}; bad=0
+    for t in git jq gh node python3; do
+      if command -v "$t" >/dev/null; then say "  ok   $t"; else say "  --   $t not found"; case $t in git|jq) bad=1 ;; esac; fi
+    done
+    if gh api user >/dev/null 2>&1; then say "  ok   gh api reaches GitHub"; else say "  --   gh api can't reach GitHub (in a cloud session: GH_TOKEN= gh api ...)"; fi
+    for f in .claude/sasori/tripwire.sh .claude/skills/track/SKILL.md .claude/skills/review-gate/SKILL.md; do
+      [ -f "$d/$f" ] && say "  ok   $f" || { say "  --   $f missing: run sasori init $d"; bad=1; }
+    done
+    [ -f "$d/.sasori/config.json" ] && say "  ok   .sasori/config.json: $(jq -c .checks "$d/.sasori/config.json")"
+    adv=$(jq -r '.audit.advisory // [] | join(", ")' "$d/.sasori/config.json" 2>/dev/null || true)
+    [ -n "$adv" ] && say "  !!   dependency audit is advisory (warns, never fails) in: $adv"
+    lvl=$(jq -r '.audit.level // "high"' "$d/.sasori/config.json" 2>/dev/null || echo high)
+    [ "$lvl" = high ] || say "  !!   dependency audit fails at $lvl and above, not high"
+    # every workflow file parses and has on: and jobs: (a ci.yml GitHub can't parse turns main red on its first push);
+    # actionlint goes further when it's installed
+    for f in "$d"/.github/workflows/*.yml "$d"/.github/workflows/*.yaml; do
+      [ -f "$f" ] || continue
+      out=$(python3 - "$f" 2>&1 <<'PY3'
+import sys, yaml
+f = sys.argv[1]; w = f.split("/.github/workflows/")[1]
+try: d = yaml.safe_load(open(f))
+except Exception as e: print(f"--   {w} doesn't parse: {str(e).splitlines()[0]}"); sys.exit(1)
+miss = [k for k, ok in (("on:", isinstance(d, dict) and ("on" in d or True in d)), ("jobs:", isinstance(d, dict) and isinstance(d.get("jobs"), dict) and d["jobs"])) if not ok]
+print(f"--   {w} has no {' or '.join(miss)}" if miss else f"ok   {w} parses"); sys.exit(1 if miss else 0)
+PY3
+) && rc=0 || rc=$?
+      printf '%s\n' "$out" | sed 's/^/  /'; [ "$rc" = 0 ] || bad=1
+      if [ "$rc" = 0 ] && command -v actionlint >/dev/null; then
+        if lint=$(actionlint -no-color "$f" 2>&1); then say "  ok   actionlint ${f##*/}"; else say "  --   actionlint ${f##*/}:"; sed -n '1,5s/^/         /p' <<<"$lint"; bad=1; fi   # not | head: a SIGPIPE under pipefail ends doctor
+      fi
+    done
+    # session CI: the train runs the checks itself; no workflow may start a job
+    say "  ok   session CI: the train runs $(jq -r '(.workflows // {CI: "ci.yml"}) | keys | join(", ")' "$d/.sasori/config.json") itself and merges on their statuses"
+    if [ "$(jq '.checks // [] | length' "$d/.sasori/config.json")" = 0 ]; then say "  --   \"checks\" is empty: session CI has nothing to run for CI"; bad=1; fi
+    live=$(python3 - "$d" <<'PY3'
+import glob, json, os, sys, yaml
+d = sys.argv[1]
+keep = set(json.load(open(os.path.join(d, ".sasori/config.json"))).get("actionsKeep", []))
+for f in sorted(glob.glob(os.path.join(d, ".github/workflows/*.y*ml"))):
+    if os.path.basename(f) in keep: continue
+    try: w = yaml.safe_load(open(f)) or {}
+    except Exception: continue
+    on = w.get("on", w.get(True)) or {}
+    on = {k: None for k in on} if isinstance(on, list) else ({on: None} if isinstance(on, str) else on)
+    if set(on) - {"workflow_dispatch", "workflow_call"}: print(os.path.basename(f))   # a called workflow runs in its caller's job
+PY3
+)
+    if [ -n "$live" ]; then say "  --   these workflows still start Actions jobs: $(paste -sd' ' <<<"$live") (sasori init makes them dispatch-only; or list them in \"actionsKeep\")"; bad=1
+    else say "  ok   every workflow is dispatch-only"; fi
+    exit $bad
+    ;;
+
+  *) sed -n '2,7p' "$0"; exit 1 ;;
+esac
