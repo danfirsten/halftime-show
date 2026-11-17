@@ -41,10 +41,12 @@ export function markAt(seed: number, i: number, w: number, h: number): Mark | nu
   const r = rng(seed * 7919 + i);
   const x0 = r() * w;
   const y0 = r() * h;
-  const d = Math.hypot((x0 - w / 2) / (w * 0.46), (y0 - h / 2) / (h * 0.5));
+  // Centred a little above the middle and kept off the bottom row, where the tabs and the note sit.
+  const d = Math.hypot((x0 - w / 2) / (w * 0.46), (y0 - h * 0.46) / (h * 0.42));
   if (d > 1 || r() > 1.05 - d * 0.9) return null;
-  const alpha = 0.18 + r() * 0.5;
-  const width = r() < 0.12 ? 1.4 : 0.8;
+  const alpha = 0.24 + r() * 0.5;
+  const hair = Math.max(0.8, w / 1100);
+  const width = r() < 0.12 ? hair * 1.75 : hair;
   const steps = 10 + Math.floor(r() * 16);
   const st = Math.max(2, w / 260);
   const points: [number, number][] = [[x0, y0]];

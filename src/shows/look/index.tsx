@@ -57,7 +57,8 @@ function Look({ register }: ShowProps) {
       state.raf = requestAnimationFrame(frame);
       pace.tick(performance.now());
       const target = pace.count(reducedMotion());
-      if (note.current) note.current.textContent = String(Math.floor(pace.progress * 100));
+      const pct = String(Math.floor(pace.progress * 100));
+      if (note.current && note.current.textContent !== pct) note.current.textContent = pct;
       if (target <= state.drawn) return;
       if (reducedMotion()) {
         // A batch: painted on the top canvas, faded in, then folded into the main one.
