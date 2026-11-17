@@ -18,7 +18,7 @@ execFileSync('npm', ['run', 'zip'], { env: { ...process.env, HALFTIME_RELEASE: '
 const { version } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
 const files = (zip) => execFileSync('unzip', ['-Z1', zip], { encoding: 'utf8' }).split('\n').filter(Boolean);
 const manifestOf = (zip) => JSON.parse(execFileSync('unzip', ['-p', zip, 'manifest.json'], { encoding: 'utf8' }));
-const LICENCES = ['LICENSE.txt', 'SCOWL-COPYRIGHT.txt', 'QUESTIONS-LICENSE.md', 'fonts-licence.md', 'Geist-OFL.txt', 'GeistMono-OFL.txt'];
+const LICENCES = ['LICENSE.txt', 'SCOWL-COPYRIGHT.txt', 'QUESTIONS-LICENSE.txt', 'fonts-licence.txt', 'Geist-OFL.txt', 'GeistMono-OFL.txt'];
 
 for (const browser of ['chrome', 'firefox']) {
   test(`the ${browser} package is a Manifest V3 release: *.hulu.com only, tabs and storage, no fixture, licences in`, () => {

@@ -1,7 +1,7 @@
 // The core loop on the stand-in player, with the built extension loaded: a break mutes the tab and opens the
 // overlay, its end unmutes and closes it, a viewer-muted tab stays muted, the override and the popup button work,
 // flicker never toggles anything, and leaving the page mid-break gives the sound back.
-/* global chrome, setInterval, setTimeout */
+/* global chrome, CustomEvent, setInterval, setTimeout */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { launchWithExtension, serveFixture, openFixture, OVERLAY_SELECTOR } from './helpers.mjs';

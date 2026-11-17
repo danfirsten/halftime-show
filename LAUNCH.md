@@ -91,14 +91,14 @@ The fix goes in one file, `src/sites/hulu.ts`, with a test against the snapshot 
 
 None of this is needed to use it yourself. Each store reviews the add-on before it goes live.
 
-Words you can use in both listings:
+Words you can use in the listings:
 
 - **Name:** Halftime Show
 - **Summary:** Mutes the ad break and puts something better on top.
 - **Single purpose:** During a Hulu ad break, mutes the tab and covers the ad with a small game or something to look at, then gives the sound and picture back when the show returns. It never blocks, skips or speeds up ads.
 - **Permissions:** `tabs`, to mute and unmute the tab. `storage`, to keep settings and scores in the browser. Access to hulu.com, to notice ad breaks and cover them.
 - **Data:** none collected, none sent. No accounts, no analytics, no remote code.
-- **Not affiliated with Hulu:** say so in the description, and use your own screenshots of the halftime show, not Hulu's artwork or logo.
+- **Not affiliated with Hulu:** say so in the description. Take screenshots of the halftime show on the stand-in player (`fixture/README.md` says how to run it), labelled "Stand-in player", never Hulu's artwork, shows or logo.
 
 ### Chrome Web Store
 

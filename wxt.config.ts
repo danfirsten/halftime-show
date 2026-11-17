@@ -13,8 +13,9 @@ const fromRoot = (file: string) => decodeURIComponent(new URL(`./${file}`, impor
 const LICENCES: [string, string][] = [
   ['LICENSE', 'LICENSE.txt'],
   ['src/shows/five-letters/SCOWL-COPYRIGHT.txt', 'SCOWL-COPYRIGHT.txt'],
-  ['src/shows/trivia/QUESTIONS-LICENSE.md', 'QUESTIONS-LICENSE.md'],
-  ['assets/fonts-licence.md', 'fonts-licence.md'],
+  // As .txt, so a browser shows them rather than downloading them.
+  ['src/shows/trivia/QUESTIONS-LICENSE.md', 'QUESTIONS-LICENSE.txt'],
+  ['assets/fonts-licence.md', 'fonts-licence.txt'],
   ['node_modules/@fontsource-variable/geist/LICENSE', 'Geist-OFL.txt'],
   ['node_modules/@fontsource-variable/geist-mono/LICENSE', 'GeistMono-OFL.txt'],
 ];

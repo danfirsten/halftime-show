@@ -43,7 +43,7 @@ const CC = 'https://creativecommons.org/licenses/by-sa/4.0/';
 // Copied into every build by wxt.config.ts (LICENCES).
 const LICENCE_LINKS: [string, string][] = [
   ['SCOWL-COPYRIGHT.txt', 'SCOWL'],
-  ['QUESTIONS-LICENSE.md', 'the question bank'],
+  ['QUESTIONS-LICENSE.txt', 'the question bank'],
   ['Geist-OFL.txt', 'Geist'],
   ['GeistMono-OFL.txt', 'Geist Mono'],
   ['LICENSE.txt', 'the code'],
@@ -207,7 +207,6 @@ export function Options({ deps = browserDeps }: { deps?: OptionsDeps }) {
             <b>Access to hulu.com</b>: to see when a break starts and to cover it. It never blocks, skips or speeds up an ad, and never touches Hulu's network traffic.
           </li>
         </ul>
-        <p class="op-p">Halftime Show is not made by or affiliated with Hulu.</p>
       </section>
 
       <section class="op-sec" aria-labelledby="op-credits">

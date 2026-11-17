@@ -74,7 +74,7 @@ describe('Options', () => {
   it('links the full licence texts that ship inside the extension', async () => {
     const el = await mount(deps());
     const links = [...el.querySelectorAll<HTMLAnchorElement>('a[href^="licences/"]')].map((a) => a.getAttribute('href'));
-    expect(links).toEqual(['licences/SCOWL-COPYRIGHT.txt', 'licences/QUESTIONS-LICENSE.md', 'licences/Geist-OFL.txt', 'licences/GeistMono-OFL.txt', 'licences/LICENSE.txt']);
+    expect(links).toEqual(['licences/SCOWL-COPYRIGHT.txt', 'licences/QUESTIONS-LICENSE.txt', 'licences/Geist-OFL.txt', 'licences/GeistMono-OFL.txt', 'licences/LICENSE.txt']);
   });
 
   it('says detection may be out of date only after a long watch with no break', async () => {
