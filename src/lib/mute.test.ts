@@ -53,3 +53,24 @@ describe('mute', () => {
     expect(tabs.get(4)).toBe(true);
   });
 });
+
+describe('mute where the browser has no tab mute (Safari)', () => {
+  beforeEach(() => {
+    vi.spyOn(browser.tabs, 'get').mockImplementation((async (id: number) => ({ id })) as never);
+  });
+
+  it('says so, and leaves the tab alone at both ends of a break', async () => {
+    const { canMuteTab, muteTab, unmuteTab } = await freshMute();
+    expect(await canMuteTab(5)).toBe(false);
+    expect(await muteTab(5)).toBe(false);
+    expect(await unmuteTab(5)).toBe(false);
+    expect(browser.tabs.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('canMuteTab', () => {
+  it('is true where the browser reports the tab mute', async () => {
+    const { canMuteTab } = await freshMute();
+    expect(await canMuteTab(6)).toBe(true);
+  });
+});

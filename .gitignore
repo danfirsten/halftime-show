@@ -6,3 +6,6 @@ node_modules/
 .data/
 qa-report/
 *.zip
+
+# Safari app wrapper made on a Mac by scripts/safari-app.sh
+safari/

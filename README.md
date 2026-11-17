@@ -27,10 +27,30 @@ npm install
 npm run dev          # Chrome with the extension loaded; npm run dev:firefox for Firefox
 npm test             # unit tests
 npm run e2e          # builds, then loads the extension in Chromium
-npm run build        # .output/chrome-mv3; npm run build:firefox for Firefox
+npm run build        # .output/chrome-mv3; npm run build:firefox for Firefox, npm run build:safari for Safari
 ```
 
 When Hulu changes its player, detection is fixed in one file, `src/sites/hulu.ts`, with tests against recorded page snapshots. See `docs/product-brief.md` for how it works and `docs/design.md` for the design.
+
+## Safari
+
+Safari runs extensions only inside a Mac app, so on a Mac you build that app yourself. Safari can't mute a tab from an extension, so there Halftime Show mutes the Hulu player's video instead, and puts your volume and mute back after the break.
+
+You need a Mac with Safari 16.4 or later (macOS Monterey or newer) and Xcode (from the App Store; open it once after installing).
+
+```bash
+npm install
+bash scripts/safari-app.sh   # builds the Safari version, wraps it in an app in safari/, builds and opens the app
+```
+
+Then, in Safari:
+
+1. Settings, Advanced: tick "Show features for web developers" (on older Safari, "Show Develop menu in menu bar").
+2. Develop, Developer Settings: tick "Allow unsigned extensions" (on older Safari it is in the Develop menu itself). Safari turns this off each time it quits, so tick it again after a restart.
+3. Settings, Extensions: turn on Halftime Show.
+4. Open hulu.com, click the Halftime Show button by the address bar, and allow it on hulu.com ("Always Allow on This Website").
+
+Run the script again after changing the code. Putting it on the App Store needs a paid Apple Developer Program membership; that's a separate step.
 
 ## Not affiliated with Hulu
 

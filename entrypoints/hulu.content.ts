@@ -5,6 +5,7 @@ import { mountOverlay, type OverlayHandle } from '../src/overlay';
 import { shows } from '../src/shows';
 import type { ShowId } from '../src/shows/types';
 import { createBreakControl } from '../src/lib/break-control';
+import { createPageMuter } from '../src/lib/mute';
 import { BREAK_END, BREAK_START, COMMAND_OVERRIDE, PING, PORT_NAME, TAB_STATE, messageType, type BreakEndMessage, type MuteReply, type TabState } from '../src/lib/messages';
 import { watchDodged, type Dodged } from '../src/state/scoreboard';
 import { loadSettings, saveLastShow } from '../src/state/settings';
@@ -70,11 +71,17 @@ export default defineContentScript({
       return (await browser.runtime.sendMessage(message)) as T;
     }
 
+    // Where the browser can't mute the tab (Safari), the background says so and the page's video is muted instead.
+    const pageMute = createPageMuter(document);
     const control = createBreakControl({
-      mute: () => send<MuteReply>({ type: BREAK_START }),
+      async mute() {
+        const reply = await send<MuteReply | undefined>({ type: BREAK_START });
+        if (reply?.mutePage) pageMute.start();
+      },
       async unmute(notAd) {
-        const reply = await send<MuteReply | undefined>({ type: BREAK_END, notAd } satisfies BreakEndMessage);
-        return reply?.muted === true;
+        const page = pageMute.end();
+        const reply = await send<MuteReply | undefined>({ type: BREAK_END, notAd } satisfies BreakEndMessage).catch(() => undefined);
+        return page ?? reply?.muted === true;
       },
       open(seconds) {
         const video = findVideo();
@@ -137,6 +144,7 @@ export default defineContentScript({
       browser.runtime.onMessage.removeListener(onMessage);
       clearInterval(updates);
       clearInterval(pings);
+      pageMute.end();
       overlay?.destroy();
       port = null;
     });

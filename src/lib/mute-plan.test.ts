@@ -21,3 +21,15 @@ describe('mutePlan', () => {
     expect(mutePlan(memory, 3, 'end', true)).toEqual({ setMuted: false });
   });
 });
+
+describe('mutePlan for the page fallback', () => {
+  it('works the same keyed by a video element', () => {
+    const memory = new Map<object, boolean>();
+    const viewerMuted = {};
+    const playing = {};
+    expect(mutePlan(memory, viewerMuted, 'start', true)).toEqual({});
+    expect(mutePlan(memory, playing, 'start', false)).toEqual({ setMuted: true });
+    expect(mutePlan(memory, viewerMuted, 'end', true)).toEqual({});
+    expect(mutePlan(memory, playing, 'end', true)).toEqual({ setMuted: false });
+  });
+});
