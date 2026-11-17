@@ -1,6 +1,6 @@
 import { h, render } from 'preact';
 import type { Show, ShowId } from '../shows/types';
-import { placeholderShows } from '../shows/placeholder';
+import { shows as allShows } from '../shows';
 import { OverlayView, noteTitle, type OverlayActions, type OverlayState } from './Overlay';
 import { edgeStep } from './edge';
 import { registerFonts } from './fonts';
@@ -16,7 +16,7 @@ export interface OverlayOptions {
   lastShow?: ShowId | null;
   /** Ad time dodged so far, in seconds, for the scoreboard. Never blank: 0:00 until there is some. */
   dodged?: { today: number; week: number };
-  /** The four shows. Placeholders until each show lands. */
+  /** The four shows (src/shows/index.ts). */
   shows?: Show[];
 }
 
@@ -77,7 +77,7 @@ function deepActive(doc: Document): HTMLElement | null {
 export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): OverlayHandle {
   const doc = video.ownerDocument;
   const win = doc.defaultView ?? window;
-  const shows = options.shows ?? placeholderShows;
+  const shows = options.shows ?? allShows;
   registerFonts(doc);
 
   const host = doc.createElement(HOST_TAG);

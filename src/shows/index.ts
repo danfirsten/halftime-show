@@ -1,18 +1,14 @@
-import type { Show, ShowId } from './types';
+import { SHOW_IDS, type Show } from './types';
 import { placeholderShows } from './placeholder';
+import { fiveLetters } from './five-letters';
+import { hoopsCatch } from './hoops-catch';
+import { look } from './look';
 
-// The show registry: the four halftime shows in SHOW_IDS order. Each show's own issue swaps its line here for the
-// real show; until then it is the placeholder.
-
-function placeholder(id: ShowId): Show {
-  const show = placeholderShows.find((s) => s.id === id);
-  if (!show) throw new Error(`no placeholder for ${id}`);
-  return show;
-}
-
-export const shows: Show[] = [
-  placeholder('words'),
-  placeholder('trivia'),
-  placeholder('catch'),
-  placeholder('look'),
-];
+/** The four halftime shows, in SHOW_IDS order. Each show swaps its own line for the real one as it lands. */
+const byId: Record<(typeof SHOW_IDS)[number], Show> = {
+  words: fiveLetters,
+  trivia: placeholderShows.find((s) => s.id === 'trivia')!,
+  catch: hoopsCatch,
+  look,
+};
+export const shows: Show[] = SHOW_IDS.map((id) => byId[id]);

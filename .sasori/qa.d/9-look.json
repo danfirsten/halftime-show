@@ -1,0 +1,11 @@
+{
+  "routes": [],
+  "interactions": [
+    {
+      "route": "/overlay-stage?breaks=0:60",
+      "selector": ".hs-tabs [data-show=\"look\"]",
+      "action": "click",
+      "label": "Choose Something to look at mid-break"
+    }
+  ]
+}
