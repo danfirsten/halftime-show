@@ -28,6 +28,9 @@ for (const browser of ['chrome', 'firefox']) {
     const list = files(zip);
     assert.deepEqual(list.filter((f) => /fixture|overlay-stage|\.webm$|\.map$/.test(f)), []);
     for (const name of LICENCES) assert.ok(list.includes(`licences/${name}`), `licences/${name} ships`);
+    // The stores need a 128 px icon; the toolbar uses the small ones.
+    assert.equal(manifest.icons['128'], 'icon/128.png');
+    for (const size of [16, 32, 48, 128]) assert.ok(list.includes(`icon/${size}.png`), `icon/${size}.png ships`);
   });
 }
 

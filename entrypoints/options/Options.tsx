@@ -1,3 +1,4 @@
+import { Fragment } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { Clock, Hoop, Label, Pill } from '../../src/ui';
 import { CaptureButton } from './CaptureButton';
@@ -39,6 +40,14 @@ export const browserDeps: OptionsDeps = {
 };
 
 const CC = 'https://creativecommons.org/licenses/by-sa/4.0/';
+// Copied into every build by wxt.config.ts (LICENCES).
+const LICENCE_LINKS: [string, string][] = [
+  ['SCOWL-COPYRIGHT.txt', 'SCOWL'],
+  ['QUESTIONS-LICENSE.md', 'the question bank'],
+  ['Geist-OFL.txt', 'Geist'],
+  ['GeistMono-OFL.txt', 'Geist Mono'],
+  ['LICENSE.txt', 'the code'],
+];
 
 function Reset({ deps }: { deps: OptionsDeps }) {
   const [state, setState] = useState<'idle' | 'asking' | 'done' | 'error'>('idle');
@@ -231,6 +240,18 @@ export function Options({ deps = browserDeps }: { deps?: OptionsDeps }) {
               GitHub
             </a>{' '}
             (MIT). The question bank keeps its own licence.
+          </li>
+          <li>
+            The full licence texts ship inside the extension:{' '}
+            {LICENCE_LINKS.map(([file, name], i) => (
+              <Fragment key={file}>
+                {i > 0 && (i === LICENCE_LINKS.length - 1 ? ' and ' : ', ')}
+                <a href={`licences/${file}`} target="_blank" rel="noreferrer">
+                  {name}
+                </a>
+              </Fragment>
+            ))}
+            .
           </li>
         </ul>
       </section>
