@@ -1,7 +1,7 @@
 <!-- sasori:approved gate=vision date=2026-11-17 -->
 # Halftime Show: product brief
 
-A free, open-source browser extension for people who watch Hulu in a browser: when an ad break starts it mutes the Hulu tab and puts something better on top, and when the break ends it takes that away and turns the sound back on.
+A free, open-source browser extension (Chrome, Firefox and, from #21, Safari) for people who watch Hulu in a browser: when an ad break starts it mutes the Hulu tab and puts something better on top, and when the break ends it takes that away and turns the sound back on.
 
 ## Who it's for
 
@@ -65,7 +65,7 @@ The cloud sessions that build it can't sign in to Hulu, so the build uses a loca
 | 7 | Settings popup: on or off per site, choose the halftime show, shortcut list | S6 | control |
 | 8 | Privacy: no network calls, no analytics, no accounts, and a page that says so | S9 | trust, open source |
 
-Out of the MVP: other streaming sites (one file each, later); Safari (needs an Xcode wrapper); a store listing (Dan's, below); syncing settings across devices; anything that skips or blocks ads.
+Out of the MVP: other streaming sites (one file each, later); a store listing (Dan's, below); syncing settings across devices; anything that skips or blocks ads.
 
 ## Market, in one minute
 
@@ -91,6 +91,12 @@ Dan. Then, once Dan publishes it: r/Hulu and r/cordcutters threads about Hulu ad
 ## Design
 
 Dan's ink and paper design and motion system (tokens in `src/styles/tokens.css`): black and white, Geist, pills, the clip, marks and the cast. The overlay is the one moment: the halftime show opens over the ad with the system's clip. See `docs/design.md`: the edge is the clock.
+
+## Safari (Dan, 17 Nov)
+
+Safari runs the same WebExtension, with two differences (built in #21):
+- **Muting:** Safari's support for muting a tab from an extension isn't confirmed, so muting goes through one adapter (`src/lib/mute.ts`): the tab mute where the browser supports it (Chrome, Firefox), and otherwise muting the page's video element from the content script, restoring the viewer's own volume and mute after the break. Either way a tab or player the viewer muted stays muted.
+- **Packaging:** Safari runs extensions only inside a Mac app. `npm run build:safari` makes the Safari build here, and a script run on Dan's Mac (`scripts/safari-app.sh`, using Apple's `xcrun safari-web-extension-converter` and Xcode) wraps it into an app he can run locally with Safari's "Allow Unsigned Extensions". Shipping on the App Store needs the Apple Developer Program (Dan's call).
 
 ## Architecture
 
@@ -121,7 +127,7 @@ Dan's ink and paper design and motion system (tokens in `src/styles/tokens.css`)
 |---|---|---|
 | Block or skip ads? | Never: mute and cover only | a policy change, not code |
 | Mute the computer or the tab? | The Hulu tab | an extension can't mute the system |
-| Browsers | Chrome and Chromium browsers, and Firefox | Safari later, with an Xcode wrapper |
+| Browsers | Chrome and Chromium browsers, Firefox and Safari (Dan, 17 Nov) | n/a |
 | Sites | Hulu only in v1, built for more | one file per site |
 | Licence | MIT | one file |
 | Repo visibility | already public (Dan made it so) | n/a |
