@@ -96,13 +96,14 @@ Dan's ink and paper design and motion system (tokens in `src/styles/tokens.css`)
 
 Safari runs the same WebExtension, with two differences (built in #21):
 - **Muting:** Safari's support for muting a tab from an extension isn't confirmed, so muting goes through one adapter (`src/lib/mute.ts`): the tab mute where the browser supports it (Chrome, Firefox), and otherwise muting the page's video element from the content script, restoring the viewer's own volume and mute after the break. Either way a tab or player the viewer muted stays muted.
+- **Manifest:** Manifest V3, as for Chrome and Firefox. Safari 16.4 or later: Manifest V3 needs 15.4, and the overlay's container queries and `color-mix` need 16.2. WXT builds Manifest V2 for Safari unless told otherwise, so `build:safari` passes `--mv3`.
 - **Packaging:** Safari runs extensions only inside a Mac app. `npm run build:safari` makes the Safari build here, and a script run on Dan's Mac (`scripts/safari-app.sh`, using Apple's `xcrun safari-web-extension-converter` and Xcode) wraps it into an app he can run locally with Safari's "Allow Unsigned Extensions". Shipping on the App Store needs the Apple Developer Program (Dan's call).
 
 ## Architecture
 
-- **Stack:** a WebExtension (Manifest V3) in TypeScript strict, built with [WXT](https://wxt.dev) (Vite underneath) into Chrome and Firefox builds from one codebase. UI in Preact. Vitest for logic; Playwright loads the built extension in Chromium for end-to-end tests.
+- **Stack:** a WebExtension (Manifest V3) in TypeScript strict, built with [WXT](https://wxt.dev) (Vite underneath) into Chrome, Firefox and Safari builds from one codebase. Safari's build is Manifest V3 too (`npm run build:safari`, WXT's `--mv3`), the same shape as Chrome's. UI in Preact. Vitest for logic; Playwright loads the built extension in Chromium for end-to-end tests.
 - **Entry points** (`entrypoints/`):
-  - `background.ts`, the service worker: mutes and unmutes the tab (`tabs.update({ muted })`), remembering whether the user had it muted already so it never unmutes something they muted; owns the keyboard commands; keeps the scoreboard totals.
+  - `background.ts`, the service worker: mutes and unmutes the tab through `src/lib/mute.ts` (`tabs.update({ muted })`, or in Safari it tells the content script to mute the page's video), remembering whether the user had it muted already so it never unmutes something they muted; owns the keyboard commands; keeps the scoreboard totals.
   - `hulu.content.ts`, the content script on `*.hulu.com`: runs the detector and mounts the overlay. Mounts into the player's full-screen element when there is one, so it works in full screen.
   - `popup/`: the toolbar popup (on or off for this site, today's scoreboard, the default halftime show, a link to options).
   - `options/`: settings (default show, per-site switch, shortcuts, a "detection looks out of date" note, privacy statement).
@@ -119,7 +120,7 @@ Safari runs the same WebExtension, with two differences (built in #21):
 - **Permissions:** `tabs` (mute only), `storage`, host access to `*://*.hulu.com/*`. Nothing else. No remote code, no network calls of its own.
 - **Roles:** one user, the person running the browser. Nothing to authorise.
 - **External services:** none. The trivia bank and word list ship inside the extension.
-- **Jobs:** none. Store packaging is `npm run zip` (Chrome and Firefox zips); publishing to the stores is Dan's.
+- **Jobs:** none. Store packaging is `npm run zip` (Chrome and Firefox zips); Safari's is a Mac app made on Dan's Mac by `scripts/safari-app.sh`. Publishing to the stores is Dan's.
 
 ## Defaults taken
 

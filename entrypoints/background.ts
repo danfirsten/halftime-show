@@ -1,11 +1,12 @@
 import type { Browser } from 'wxt/browser';
-import { forgetTab, muteTab, unmuteTab } from '../src/lib/mute';
+import { canMuteTab, forgetTab, muteTab, unmuteTab } from '../src/lib/mute';
 import { createBreakKeeper } from '../src/lib/break-keeper';
 import { sessionRecord } from '../src/lib/session-record';
 import { BREAK_END, BREAK_START, COMMAND_OVERRIDE, OVERRIDE_COMMAND, PORT_NAME, messageType, type MuteReply } from '../src/lib/messages';
 import { recordDodged } from '../src/state/scoreboard';
 
-// Mutes and unmutes the Hulu tab for each break, keeps the ad time dodged, and owns the Alt+Shift+A command.
+// Mutes and unmutes the Hulu tab for each break (or, where the browser has no tab mute, tells the page to mute its
+// video), keeps the ad time dodged, and owns the Alt+Shift+A command.
 // Each Hulu tab's content script holds a port open: if it closes mid-break (the page reloaded, navigated or
 // crashed), the tab gets its sound back.
 export default defineBackground(() => {
@@ -23,7 +24,9 @@ export default defineBackground(() => {
     const tabId = sender.tab?.id;
     if (tabId === undefined) return undefined;
     const type = messageType(message);
-    if (type === BREAK_START) return keeper.start(tabId).then((muted): MuteReply => ({ muted }));
+    if (type === BREAK_START) {
+      return keeper.start(tabId).then(async (muted): Promise<MuteReply> => ({ muted, mutePage: !(await canMuteTab(tabId)) }));
+    }
     if (type === BREAK_END) {
       const notAd = (message as { notAd?: unknown }).notAd === true;
       return keeper.end(tabId, { notAd }).then((muted): MuteReply => ({ muted }));
