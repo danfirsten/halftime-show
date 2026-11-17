@@ -1,4 +1,5 @@
 import { Hoop, Label, Pill } from '../../src/ui';
+import { CaptureButton } from './CaptureButton';
 
 /** The options page shell. The settings themselves arrive with the settings work. */
 export function Options() {
@@ -20,6 +21,7 @@ export function Options() {
           </Pill>
         </div>
       </section>
+      <CaptureButton />
       <footer class="op-foot">
         <Label>Halftime Show is not made by or affiliated with Hulu.</Label>
       </footer>
