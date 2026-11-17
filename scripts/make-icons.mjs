@@ -1,6 +1,7 @@
 // Makes the extension's icons (public/icon/<size>.png, which WXT puts in the manifest) from Hoop (assets/hoop.svg):
 // Hoop in ink, filled with paper, so it reads on light and dark toolbars alike. Run it again if Hoop changes:
 //   node scripts/make-icons.mjs
+/* global process */
 import fs from 'node:fs';
 import path from 'node:path';
 import { chromium } from 'playwright';
@@ -27,4 +28,4 @@ for (const size of SIZES) {
   await page.locator('svg').screenshot({ path: path.join('public/icon', `${size}.png`), omitBackground: true });
 }
 await browser.close();
-console.log(`Made ${SIZES.map((s) => `${s}.png`).join(', ')} in public/icon/`);
+process.stdout.write(`Made ${SIZES.map((s) => `${s}.png`).join(', ')} in public/icon/\n`);
