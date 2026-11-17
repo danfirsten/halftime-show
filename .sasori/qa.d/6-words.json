@@ -8,5 +8,13 @@
       "src/overlay/",
       "entrypoints/overlay-stage/"
     ]
+  },
+  "motion": {
+    "allow": [
+      ".hs",
+      ".hs-in",
+      ".pane",
+      ".m-c"
+    ]
   }
 }
