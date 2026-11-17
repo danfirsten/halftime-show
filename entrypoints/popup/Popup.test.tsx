@@ -102,4 +102,10 @@ describe('Popup', () => {
     await fakeBrowser.storage.local.set({ [DETECTION_KEY]: { watched: STALE_AFTER_SECONDS } });
     await vi.waitFor(() => expect(el.querySelector('.stale')?.textContent).toContain('Detection may be out of date'));
   });
+
+  it('does not say "No ad breaks yet" during a break', async () => {
+    const el = await mount(fakeDeps({ inBreak: true, dodged: { today: 0, week: 0 } }).deps);
+    expect(el.querySelector('.status')?.textContent).toBe('In a break');
+    expect(el.querySelector('.pp-empty')).toBeNull();
+  });
 });

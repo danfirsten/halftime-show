@@ -140,7 +140,7 @@ export function Popup({ deps = browserDeps }: { deps?: PopupDeps }) {
             </dd>
           </div>
         </dl>
-        {dodged.week === 0 && <p class="pp-empty">No ad breaks yet. Start an episode and the first one opens here.</p>}
+        {dodged.week === 0 && on && !inBreak && <p class="pp-empty">No ad breaks yet. Start an episode and the first one opens here.</p>}
       </section>
       <section class="pp-show" aria-labelledby="pp-show-h">
         <h2 id="pp-show-h" class="pp-h">
