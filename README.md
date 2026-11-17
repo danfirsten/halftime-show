@@ -36,6 +36,10 @@ When Hulu changes its player, detection is fixed in one file, `src/sites/hulu.ts
 
 Halftime Show is an independent open-source project. It isn't made, endorsed or supported by Hulu. Hulu is a trademark of its owner.
 
+## Credits
+
+- Five letters uses word lists from [SCOWL](http://wordlist.aspell.net/) (Spell Checker Oriented Word Lists) by Kevin Atkinson, with its sources, mostly public domain. The licence text ships with the extension in `src/shows/five-letters/SCOWL-COPYRIGHT.txt`. SCOWL's licence allows copying, modifying and redistributing the lists for any purpose, so long as that notice stays with them. The lists reach this repo through the [`wordlist-english`](https://github.com/jacksonrayhamilton/wordlist-english) package (MIT), and `src/shows/five-letters/build-words.mjs` rebuilds the shipped list from it. The words are bundled in the extension; nothing is fetched.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
