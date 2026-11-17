@@ -14,7 +14,10 @@ export interface BreakKeeperDeps {
 }
 
 export interface BreakKeeper {
-  start(tabId: number): Promise<boolean>;
+  /** A break is on. `fresh`: it is a new break, so its clock starts now even if an old start was left behind (a page
+   *  that reloaded while the worker was stopped never said its break ended). Without it (a reconnect mid break), the
+   *  first start is kept. */
+  start(tabId: number, how?: { fresh?: boolean }): Promise<boolean>;
   /** Ends the tab's break if one is on. `notAd`: the viewer said it wasn't an ad, so nothing is counted. */
   end(tabId: number, how?: { notAd?: boolean }): Promise<boolean>;
 }
@@ -33,9 +36,9 @@ export function createBreakKeeper(deps: BreakKeeperDeps): BreakKeeper {
   }
 
   return {
-    start(tabId) {
+    start(tabId, how = {}) {
       return serial(tabId, async () => {
-        if ((await deps.starts.get(tabId)) === undefined) await deps.starts.set(tabId, deps.now());
+        if (how.fresh || (await deps.starts.get(tabId)) === undefined) await deps.starts.set(tabId, deps.now());
         return deps.mute(tabId);
       });
     },

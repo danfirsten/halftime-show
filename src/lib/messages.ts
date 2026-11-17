@@ -17,6 +17,14 @@ export const PING = 'ping';
 /** The keyboard command in wxt.config.ts. */
 export const OVERRIDE_COMMAND = 'toggle-ad';
 
+export interface BreakStartMessage {
+  type: typeof BREAK_START;
+  /** A new break, rather than the content script saying again that its break is still on (after the worker
+   *  restarted). A new break starts the clock afresh, so a start left over from a page the worker never heard leave
+   *  isn't counted. */
+  fresh?: boolean;
+}
+
 export interface BreakEndMessage {
   type: typeof BREAK_END;
   /** The viewer said this wasn't an ad: no ad time is counted. */
@@ -32,6 +40,9 @@ export interface MuteReply {
 
 export interface TabState {
   inBreak: boolean;
+  /** In the answer to `COMMAND_OVERRIDE`, once the sound has followed: whether the tab (or, in Safari, the player)
+   *  is muted. After "this isn't an ad" a tab the viewer had muted stays muted, so the popup mustn't say "Sound on". */
+  muted?: boolean;
 }
 
 export function messageType(message: unknown): string | undefined {

@@ -25,7 +25,8 @@ export default defineBackground(() => {
     if (tabId === undefined) return undefined;
     const type = messageType(message);
     if (type === BREAK_START) {
-      return keeper.start(tabId).then(async (muted): Promise<MuteReply> => ({ muted, mutePage: !(await canMuteTab(tabId)) }));
+      const fresh = (message as { fresh?: unknown }).fresh === true;
+      return keeper.start(tabId, { fresh }).then(async (muted): Promise<MuteReply> => ({ muted, mutePage: !(await canMuteTab(tabId)) }));
     }
     if (type === BREAK_END) {
       const notAd = (message as { notAd?: unknown }).notAd === true;
@@ -47,6 +48,9 @@ export default defineBackground(() => {
   });
 
   // The tab moved to another address with no content script left to say so: end its break.
+  // After the worker restarts `ports` starts empty, and a content script outside a break only connects again at its
+  // next break. Ending a tab with no break on changes nothing, and one mid break reconnects within RECONNECT_MS of
+  // its port dropping, so that gap mutes or unmutes nothing it shouldn't.
   browser.tabs.onUpdated.addListener((tabId, change) => {
     if (change.url !== undefined && !ports.has(tabId)) quietly(keeper.end(tabId));
   });

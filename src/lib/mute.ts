@@ -22,6 +22,9 @@ export async function canMuteTab(tabId: number): Promise<boolean> {
   return (await mutedNow(tabId)) !== null;
 }
 
+// The memory is saved before the tab is muted, on purpose. If the worker stops between the two, the break's end
+// still finds the memory and puts the sound back (at worst unmuting a tab that never got muted, which changes
+// nothing). The other order could mute the tab and lose the memory, and then it would stay muted after the break.
 async function apply(tabId: number, event: 'start' | 'end', muted: boolean): Promise<boolean> {
   const record = memoryOf();
   const memory: MuteMemory = new Map();

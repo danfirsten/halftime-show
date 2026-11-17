@@ -103,6 +103,51 @@ test("the overlay's corner shows ad time dodged today and this week", async () =
   });
 });
 
+test('back-to-back breaks: each mutes and covers, each end gives it back, and the corner counts the first in the second', async () => {
+  await withExtension(async ({ context, worker, origin }) => {
+    const page = await openFixture(context, origin, { breaks: '2:3,7:3' });
+    const tabId = await tabIdOf(worker, page);
+    await page.locator('.hs.is-open').waitFor({ timeout: 10000 });
+    // The same overlay is kept between breaks; mark it, so the second break proves it was moved on, not rebuilt.
+    await page.evaluate(() => (document.getElementById('halftime-show-overlay').dataset.first = '1'));
+    const corner = page.locator(`${OVERLAY_SELECTOR} .hs-score`);
+    await corner.getByText('Dodged today 0:00').waitFor({ timeout: 5000 });
+    // The second break: the corner already counts the first one (about 3 s).
+    await page.waitForFunction(() => window.__wire.overlay.filter((o) => o.state === 'open').length === 2, null, { timeout: 15000 });
+    await corner.getByText(/Dodged today 0:0[2-4]/).waitFor({ timeout: 2000 });
+    await page.waitForFunction(() => window.fixtureState?.elapsed > 11, null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__wire.overlay.at(-1)?.state === 'none', null, { timeout: 5000 });
+
+    const log = await mutes(worker, tabId);
+    assert.deepEqual(log.map((m) => m.muted), [true, false, true, false], JSON.stringify(log));
+    const { player, overlay } = await pageLog(page);
+    assert.deepEqual(overlay.map((o) => o.state), ['open', 'closing', 'none', 'open', 'closing', 'none'], JSON.stringify(overlay));
+    const ads = player.filter((p) => p.state === 'ad');
+    assert.equal(ads.length, 2);
+    ads.forEach((ad, i) => assert.ok(log[i * 2].at - ad.at <= LIMIT_MS, `break ${i + 1} muted ${log[i * 2].at - ad.at} ms after it began`));
+
+    const board = Object.values(await scoreboard(worker));
+    assert.ok(board[0] >= 5 && board[0] <= 7, `about 6 s dodged over two breaks, got ${board}`);
+    assert.equal(await page.evaluate(() => document.getElementById('halftime-show-overlay').dataset.first), '1');
+  });
+});
+
+test('a break of unknown length mutes, covers with no countdown, and gives it all back when the show returns', async () => {
+  await withExtension(async ({ context, worker, origin }) => {
+    const page = await openFixture(context, origin, { breaks: '2:3', unknownLength: true });
+    const tabId = await tabIdOf(worker, page);
+    await page.locator('.hs.is-open').waitFor({ timeout: 10000 });
+    await page.locator(`${OVERLAY_SELECTOR} .hs-t`).getByText('Ad break').waitFor({ timeout: 5000 });
+    await page.waitForFunction(() => window.fixtureState?.elapsed > 6, null, { timeout: 15000 });
+    await page.waitForFunction(() => window.__wire.overlay.at(-1)?.state === 'none', null, { timeout: 5000 });
+    const log = await mutes(worker, tabId);
+    assert.deepEqual(log.map((m) => m.muted), [true, false], JSON.stringify(log));
+    const backAt = (await pageLog(page)).player.findLast((p) => p.state === 'content').at;
+    assert.ok(log[1].at - backAt <= LIMIT_MS, `unmuted ${log[1].at - backAt} ms after the show came back`);
+    assert.match(await backNote(page), /Back\. Sound on\./);
+  });
+});
+
 test('a tab the viewer muted stays muted through and after the break', async () => {
   await withExtension(async ({ context, worker, origin }) => {
     const page = await openFixture(context, origin, { breaks: '2:2' });
@@ -112,6 +157,19 @@ test('a tab the viewer muted stays muted through and after the break', async () 
     assert.match(await backNote(page), /The tab stays muted, as you had it\./);
     assert.equal(await mutedOf(worker, tabId), true);
     assert.deepEqual((await mutes(worker, tabId)).map((m) => m.muted), [true]);
+  });
+});
+
+test('"this isn\'t an ad" in a tab the viewer muted leaves it muted, and says so to the popup', async () => {
+  await withExtension(async ({ context, worker, origin }) => {
+    const page = await openFixture(context, origin, {});
+    const tabId = await tabIdOf(worker, page);
+    await worker.evaluate((id) => chrome.tabs.update(id, { muted: true }), tabId);
+    const override = () => worker.evaluate((id) => chrome.tabs.sendMessage(id, { type: 'command:override' }), tabId);
+    assert.deepEqual(await override(), { inBreak: true, muted: true });
+    assert.deepEqual(await override(), { inBreak: false, muted: true });
+    assert.equal(await mutedOf(worker, tabId), true);
+    assert.match(await backNote(page), /^Marked as not an ad\.$/m);
   });
 });
 
@@ -132,21 +190,21 @@ test('the override: "this is an ad" mutes and covers, "this isn\'t" gives it bac
   await withExtension(async ({ context, worker, origin }) => {
     const page = await openFixture(context, origin, { breaks: '4:3' });
     const tabId = await tabIdOf(worker, page);
-    const override = () => worker.evaluate((id) => chrome.tabs.sendMessage(id, { type: 'command:override' }), tabId);
+    const override = () => worker.evaluate(async (id) => (await chrome.tabs.sendMessage(id, { type: 'command:override' })).inBreak, tabId);
 
     // No break on: the viewer says it is an ad.
-    assert.deepEqual(await override(), { inBreak: true });
+    assert.equal(await override(), true);
     await waitMuted(worker, tabId, true);
     await page.locator('.hs.is-open').waitFor({ timeout: 5000 });
     // And then that it isn't.
-    assert.deepEqual(await override(), { inBreak: false });
+    assert.equal(await override(), false);
     await waitMuted(worker, tabId, false);
     assert.match(await backNote(page), /Marked as not an ad\. Sound on\./);
 
     // A real break at 4 s: "this isn't an ad" during it, and detection doesn't fight it before the break ends.
     await page.locator('.hs.is-open').waitFor({ timeout: 10000 });
     await waitMuted(worker, tabId, true);
-    assert.deepEqual(await override(), { inBreak: false });
+    assert.equal(await override(), false);
     await waitMuted(worker, tabId, false);
     await page.waitForFunction(() => window.fixtureState?.elapsed > 7.6, null, { timeout: 10000 });
     assert.equal(await mutedOf(worker, tabId), false);
