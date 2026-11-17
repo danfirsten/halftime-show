@@ -16,7 +16,7 @@ export interface OverlayOptions {
   lastShow?: ShowId | null;
   /** Ad time dodged so far, in seconds, for the scoreboard. Never blank: 0:00 until there is some. */
   dodged?: { today: number; week: number };
-  /** The four shows. Placeholders until each show lands. */
+  /** The four shows (src/shows/index.ts). */
   shows?: Show[];
 }
 
