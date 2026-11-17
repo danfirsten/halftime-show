@@ -38,10 +38,8 @@ Halftime Show is an independent open-source project. It isn't made, endorsed or 
 
 ## Credits
 
-Quick trivia's questions are a curated subset of the [Open Trivia Database](https://opentdb.com), shared under
-[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The file keeps its own licence and a note of what was
-changed: [src/shows/trivia/QUESTIONS-LICENSE.md](src/shows/trivia/QUESTIONS-LICENSE.md). The show prints the credit under
-every question. They ship inside the extension; nothing is fetched while you watch.
+- Quick trivia's questions are a curated subset of the [Open Trivia Database](https://opentdb.com), shared under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The file keeps its own licence and a note of what was changed: [src/shows/trivia/QUESTIONS-LICENSE.md](src/shows/trivia/QUESTIONS-LICENSE.md). The show prints the credit under every question. They ship inside the extension; nothing is fetched while you watch.
+- Five letters uses word lists from [SCOWL](http://wordlist.aspell.net/) (Spell Checker Oriented Word Lists) by Kevin Atkinson, with its sources, mostly public domain. The licence text ships with the extension in `src/shows/five-letters/SCOWL-COPYRIGHT.txt`. SCOWL's licence allows copying, modifying and redistributing the lists for any purpose, so long as that notice stays with them. The lists reach this repo through the [`wordlist-english`](https://github.com/jacksonrayhamilton/wordlist-english) package (MIT), and `src/shows/five-letters/build-words.mjs` rebuilds the shipped list from it. The words are bundled in the extension; nothing is fetched.
 
 ## Licence
 
