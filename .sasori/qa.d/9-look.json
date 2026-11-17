@@ -1,8 +1,8 @@
 {
-  "routes": ["/overlay-stage?breaks=0:40&last=look"],
+  "routes": [],
   "interactions": [
     {
-      "route": "/overlay-stage?breaks=0:40&last=look",
+      "route": "/overlay-stage?breaks=0:60",
       "selector": ".hs-tabs [data-show=\"look\"]",
       "action": "click",
       "label": "Choose Something to look at mid-break"
