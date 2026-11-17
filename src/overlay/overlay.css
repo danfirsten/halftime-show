@@ -56,7 +56,7 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
 
 /* the break-start menu */
 .m-head { margin-bottom: clamp(10px, 2cqb, 24px); font-size: var(--t-title); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; text-align: center; text-wrap: balance; }
-.m-first { margin: calc(-1 * var(--space-1)) 0 clamp(10px, 2cqb, 20px); color: var(--soft); text-align: center; max-width: 52ch; }
+.m-first { text-wrap: pretty; margin: calc(-1 * var(--space-1)) 0 clamp(10px, 2cqb, 20px); color: var(--soft); text-align: center; max-width: 52ch; }
 .hs-menu { list-style: none; margin: 0; padding: 0; width: min(100%, 62cqi); display: grid; }
 .hs-menu li + li { border-top: 1px solid var(--rule); }
 .m-row {
@@ -102,7 +102,8 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
 .hs-back {
   position: absolute; left: clamp(10px, 2cqi, 24px); bottom: clamp(10px, 2.4cqb, 28px);
   display: flex; align-items: center; gap: var(--space-3); padding: 10px 18px 10px var(--space-3); border-radius: var(--r-pill);
-  background: var(--note-ground); color: var(--fg); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: var(--shadow);
+  /* set here, not as a token on :host, so --bg is the overlay's ink and not the page default */
+  background: color-mix(in srgb, var(--bg) 78%, transparent); color: var(--fg); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: var(--shadow);
   opacity: 0; transition: opacity var(--dur-base) var(--ease-out); pointer-events: none;
 }
 .hs-back.on { opacity: 1; }
@@ -122,7 +123,7 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
   .m-row { grid-template-columns: auto 2em minmax(0, 1fr); min-height: var(--target); }
   .m-row .d { display: none; }
   .m-head { margin-bottom: var(--space-2); }
-  .m-first { margin: 0 0 10px; }
+  .m-first { text-wrap: pretty; margin: 0 0 10px; }
 }
 /* a tiny player: the show and the clock only */
 @container overlay (max-height: 200px) {
@@ -131,7 +132,7 @@ kbd { font-family: var(--mono); font-size: 0.85em; letter-spacing: 0.02em; paddi
 }
 /* small: under 560 px wide. The time left only, the tabs as a 1 2 3 4 key row, the menu as a list of keys */
 @container overlay (max-width: 559px) {
-  .hs { --pad: 10px; }
+  .hs { --pad: 12px; }
   .hs-in { gap: 6px; }
   .hs-mark span, .hs-score .hs-d, .hs-tl { display: none; }
   .hs-tabs button { padding: 0; width: var(--target); justify-content: center; border: 0; }

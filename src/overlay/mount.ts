@@ -1,7 +1,7 @@
 import { h, render } from 'preact';
 import type { Show, ShowId } from '../shows/types';
 import { placeholderShows } from '../shows/placeholder';
-import { OverlayView, type OverlayActions, type OverlayState } from './Overlay';
+import { OverlayView, noteTitle, type OverlayActions, type OverlayState } from './Overlay';
 import { edgeStep } from './edge';
 import { registerFonts } from './fonts';
 import { coverBox, mountParent } from './placement';
@@ -20,6 +20,11 @@ export interface OverlayOptions {
   shows?: Show[];
 }
 
+export interface CloseOptions {
+  notAd?: boolean;
+  soundOn?: boolean;
+}
+
 export interface OverlayHandle {
   /** The host element, `<halftime-show-root id="halftime-show-overlay">`. */
   readonly host: HTMLElement;
@@ -27,8 +32,10 @@ export interface OverlayHandle {
   open(seconds: number | null): void;
   /** The time left in the break, or null if it is no longer known. */
   update(secondsLeft: number | null): void;
-  /** The show is back: the clip closes, then the back note shows for 4 s. */
-  close(): void;
+  /** The show is back: the clip closes, then the back note shows for 4 s. `notAd`: the viewer said this wasn't an ad,
+   *  so the note claims no ad time. `soundOn: false`: the tab stays muted (the viewer had muted it), so the note
+   *  doesn't say "Sound on.". */
+  close(how?: CloseOptions): void;
   /** New scoreboard totals, in seconds. */
   setDodged(dodged: { today: number; week: number }): void;
   /** Takes the overlay off the page entirely. */
@@ -108,7 +115,7 @@ export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): 
     },
     notAd() {
       if (options.onNotAd) options.onNotAd();
-      else handle.close();
+      else handle.close({ notAd: true });
     },
     closed() {
       if (state.phase !== 'closing') return;
@@ -201,13 +208,13 @@ export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): 
       if (left === state.left && total === state.total && edgeLeft === state.edgeLeft) return;
       set({ total, left, edgeLeft });
     },
-    close() {
+    close(how = {}) {
       if (destroyed || state.phase !== 'open') return;
       guardOff();
       clearInterval(follow);
       const hadFocus = shadow.activeElement !== null;
       const seconds = Math.max(0, Math.round((Date.now() - openedAt) / 1000));
-      set({ phase: 'closing', note: { id: state.openId, seconds } });
+      set({ phase: 'closing', note: { id: state.openId, title: noteTitle(how), seconds: how.notAd ? null : seconds } });
       // The clip's animationend ends the close; this is the backstop for a page that never runs it (a hidden tab).
       const id = state.openId;
       setTimeout(() => {

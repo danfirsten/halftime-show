@@ -46,7 +46,7 @@ const overlay = mountOverlay(video, {
   onNotAd: () => {
     stage.notAd++;
     dismissed = true;
-    overlay.close();
+    overlay.close({ notAd: true });
   },
 });
 stage.overlay = overlay;
@@ -72,5 +72,11 @@ function tick() {
 }
 // The player's "End the break" closes at once, so a recording of the close starts on the click.
 document.getElementById('btn-end')?.addEventListener('click', () => overlay.close(), true);
-tick();
-setInterval(tick, 250);
+// ?back=1: a break that has just ended, so QA photographs the back note on every run.
+if (params.get('back') === '1') {
+  overlay.open(42);
+  overlay.close();
+} else {
+  tick();
+  setInterval(tick, 250);
+}

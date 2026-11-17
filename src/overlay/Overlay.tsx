@@ -19,7 +19,8 @@ export interface OverlayState {
   dodged: { today: number; week: number };
   /** The show the menu starts by itself. Null before the first pick ever: the first menu waits. */
   lastShow: ShowId | null;
-  note: { id: number; seconds: number } | null;
+  /** The back note: its first line, and the ad time dodged (null when there is none to claim, after "Not an ad"). */
+  note: { id: number; title: string; seconds: number | null } | null;
 }
 
 export interface OverlayActions {
@@ -324,7 +325,14 @@ function Cover({ state, shows, actions }: { state: OverlayState; shows: Show[]; 
   );
 }
 
-function BackNote({ seconds, done }: { seconds: number; done(): void }) {
+/** The back note's first line, from how the break ended. A tab the viewer had muted stays muted, so it never says
+ *  "Sound on." then; and after "Not an ad" nothing counts as ads dodged. */
+export function noteTitle({ notAd = false, soundOn = true }: { notAd?: boolean; soundOn?: boolean } = {}): string {
+  if (notAd) return soundOn ? 'Marked as not an ad. Sound on.' : 'Marked as not an ad.';
+  return soundOn ? 'Back. Sound on.' : 'Back. The tab stays muted, as you had it.';
+}
+
+function BackNote({ title, seconds, done }: { title: string; seconds: number | null; done(): void }) {
   const [on, setOn] = useState(false);
   useEffect(() => {
     const raf = requestAnimationFrame(() => setOn(true));
@@ -340,10 +348,12 @@ function BackNote({ seconds, done }: { seconds: number; done(): void }) {
     <div class={`hs-back${on ? ' on' : ''}`}>
       <Hoop />
       <div>
-        <b>Back. Sound on.</b>
-        <span class="sub">
-          <span class="num">{formatClock(seconds)}</span> of ads dodged.
-        </span>
+        <b>{title}</b>
+        {seconds !== null && (
+          <span class="sub">
+            <span class="num">{formatClock(seconds)}</span> of ads dodged.
+          </span>
+        )}
       </div>
     </div>
   );
@@ -354,7 +364,7 @@ export function OverlayView({ state, shows, actions }: { state: OverlayState; sh
     <div class="hs-root dark" data-surface="app">
       {state.phase !== 'closed' && <Cover key={state.openId} state={state} shows={shows} actions={actions} />}
       <div class="hs-live" role="status">
-        {state.note && state.phase === 'closed' && <BackNote key={state.note.id} seconds={state.note.seconds} done={actions.noteDone} />}
+        {state.note && state.phase === 'closed' && <BackNote key={state.note.id} title={state.note.title} seconds={state.note.seconds} done={actions.noteDone} />}
       </div>
     </div>
   );

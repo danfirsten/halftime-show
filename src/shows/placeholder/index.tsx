@@ -14,7 +14,7 @@ function placeholder(id: ShowId, name: string, line: string): Show {
     return (
       <div class="ph" data-show={id} data-running={running ? 'true' : 'false'}>
         <p class="ph-name">{name}</p>
-        <p class="ph-note">This halftime show is still being built. The ad is muted underneath until the show is back.</p>
+        <p class="ph-note">Still being built. The ad is muted underneath.</p>
       </div>
     );
   }

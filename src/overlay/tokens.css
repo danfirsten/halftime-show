@@ -22,5 +22,4 @@
   --edge-in: clamp(6px, 0.9cqi, 12px);
   --edge-w: 2px;
   --target: 44px;
-  --note-ground: color-mix(in srgb, var(--bg) 78%, transparent);
 }

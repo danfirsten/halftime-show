@@ -145,6 +145,19 @@ test('Not an ad closes it, and a click on the overlay never reaches the player',
   });
 });
 
+test('the back note is an ink pill over the show, readable whatever the page theme', async () => {
+  for (const colorScheme of ['light', 'dark']) {
+    await withStage('back=1', async (page) => {
+      await page.emulateMedia({ colorScheme });
+      await page.locator('.hs-back.on').waitFor({ timeout: 5000 });
+      const look = await page.locator('.hs-back').evaluate((el) => ({ bg: getComputedStyle(el).backgroundColor, fg: getComputedStyle(el).color }));
+      // The ground is ink at 78% (#0b0b0b), the words paper text (#f2f2ee).
+      assert.match(look.bg, /^(rgba\(11, 11, 11, 0\.78\)|color\(srgb 0\.0431\d* 0\.0431\d* 0\.0431\d* \/ 0\.78\))$/, look.bg);
+      assert.equal(look.fg, 'rgb(242, 242, 238)');
+    });
+  }
+});
+
 test('a small window: the scoreboard shows the time left only, the tabs are a key row', async () => {
   await withStage('breaks=0:30', async (page) => {
     await open(page);

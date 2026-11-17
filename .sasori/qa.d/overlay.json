@@ -1,6 +1,7 @@
 {
   "routes": [
-    "/overlay-stage?breaks=0:60"
+    "/overlay-stage?breaks=0:60",
+    "/overlay-stage?back=1"
   ],
   "interactions": [
     {
@@ -30,6 +31,11 @@
   },
   "routeFiles": {
     "/overlay-stage?breaks=0:60": [
+      "src/overlay/",
+      "src/shows/",
+      "entrypoints/overlay-stage/"
+    ],
+    "/overlay-stage?back=1": [
       "src/overlay/",
       "src/shows/",
       "entrypoints/overlay-stage/"

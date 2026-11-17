@@ -171,6 +171,28 @@ describe('open, update and close', () => {
     expect($('.hs-back')).toBeNull();
   });
 
+  it('after Not an ad, the note says so and claims no ad time dodged', () => {
+    vi.useFakeTimers();
+    mount();
+    open(30);
+    tick(9000);
+    click('.hs-notad');
+    endClose();
+    expect($('.hs-back')!.textContent).toBe('Marked as not an ad. Sound on.');
+  });
+
+  it('never says "Sound on." for a tab the viewer had muted', () => {
+    mount();
+    open(30);
+    run(() => overlay!.close({ soundOn: false }));
+    endClose();
+    expect($('.hs-back b')!.textContent).toBe('Back. The tab stays muted, as you had it.');
+    open(30);
+    run(() => overlay!.close({ notAd: true, soundOn: false }));
+    endClose();
+    expect($('.hs-back')!.textContent).toBe('Marked as not an ad.');
+  });
+
   it('finishes closing even if the animation never ends (a hidden tab)', () => {
     vi.useFakeTimers();
     mount();
