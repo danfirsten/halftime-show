@@ -1,6 +1,6 @@
 import { h, render } from 'preact';
 import type { Show, ShowId } from '../shows/types';
-import { placeholderShows } from '../shows/placeholder';
+import { shows as allShows } from '../shows';
 import { OverlayView, noteTitle, type OverlayActions, type OverlayState } from './Overlay';
 import { edgeStep } from './edge';
 import { registerFonts } from './fonts';
@@ -77,7 +77,7 @@ function deepActive(doc: Document): HTMLElement | null {
 export function mountOverlay(video: HTMLElement, options: OverlayOptions = {}): OverlayHandle {
   const doc = video.ownerDocument;
   const win = doc.defaultView ?? window;
-  const shows = options.shows ?? placeholderShows;
+  const shows = options.shows ?? allShows;
   registerFonts(doc);
 
   const host = doc.createElement(HOST_TAG);

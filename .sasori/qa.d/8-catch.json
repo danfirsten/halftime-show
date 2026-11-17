@@ -1,0 +1,6 @@
+{
+  "routes": ["/overlay-stage?breaks=0:60&last=catch"],
+  "routeFiles": {
+    "/overlay-stage?breaks=0:60&last=catch": ["src/shows/hoops-catch/", "src/overlay/", "entrypoints/overlay-stage/"]
+  }
+}

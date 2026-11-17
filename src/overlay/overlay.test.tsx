@@ -299,8 +299,8 @@ describe('the menu and the shows', () => {
   it('places a placeholder show in the slot until the real ones land', () => {
     mount();
     open(60);
-    key('3');
-    expect($('.ph-name')!.textContent).toBe("Hoop's catch");
+    key('4');
+    expect($('.ph-name')!.textContent).toBe('Something to look at');
     expect($('.ph')!.dataset.running).toBe('true');
   });
 });
