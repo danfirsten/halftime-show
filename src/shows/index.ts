@@ -1,12 +1,13 @@
-import type { Show, ShowId } from './types';
+import { SHOW_IDS, type Show } from './types';
 import { placeholderShows } from './placeholder';
+import { look } from './look';
 import { trivia } from './trivia/Trivia';
 
-function placeholder(id: ShowId): Show {
-  const show = placeholderShows.find((s) => s.id === id);
-  if (!show) throw new Error(`No placeholder for ${id}`);
-  return show;
-}
-
-/** The four halftime shows in SHOW_IDS order. Each lands in its own issue; until then a placeholder holds its place. */
-export const shows: Show[] = [placeholder('words'), trivia, placeholder('catch'), placeholder('look')];
+/** The four halftime shows, in SHOW_IDS order. Each show swaps its own line for the real one as it lands. */
+const byId: Record<(typeof SHOW_IDS)[number], Show> = {
+  words: placeholderShows.find((s) => s.id === 'words')!,
+  trivia,
+  catch: placeholderShows.find((s) => s.id === 'catch')!,
+  look,
+};
+export const shows: Show[] = SHOW_IDS.map((id) => byId[id]);
