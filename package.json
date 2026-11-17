@@ -1,7 +1,7 @@
 {
   "name": "halftime-show",
   "version": "0.1.0",
-  "description": "Mutes the ad break and puts something better on top. A browser extension for Hulu in Chrome and Firefox, with Safari on the way.",
+  "description": "Mutes the ad break and puts something better on top. A browser extension for Hulu in Chrome, Firefox and Safari.",
   "private": true,
   "type": "module",
   "license": "MIT",
