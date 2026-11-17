@@ -156,3 +156,18 @@ test('it stops when the break ends: no frames are asked for once the cover is go
     assert.ok((await page.evaluate(() => window.rafCalls)) < 5, 'at 60 fps a running game would ask for about 60');
   });
 });
+
+test('the canvas shows a focus ring when focused by keyboard', async () => {
+  await withCatch('breaks=0:60', async (page) => {
+    await page.locator('.c-cv').focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    const ring = await page.locator('.c-cv').evaluate((el) => {
+      const s = getComputedStyle(el);
+      return { matches: el.matches(':focus-visible'), style: s.outlineStyle, width: s.outlineWidth };
+    });
+    assert.equal(ring.matches, true);
+    assert.notEqual(ring.style, 'none');
+    assert.equal(ring.width, '2px');
+  });
+});
