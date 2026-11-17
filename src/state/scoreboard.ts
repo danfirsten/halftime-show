@@ -90,3 +90,10 @@ export function watchDodged(onTotals: (dodged: Dodged) => void, now: () => Date 
     browser.storage.onChanged.removeListener(listener);
   };
 }
+
+/** Clears all the ad time dodged. Writes in line with `recordDodged`, so a break ending now isn't lost to a half-done reset. */
+export function resetDodged(): Promise<void> {
+  const next = writing.then(() => browser.storage.local.remove(SCOREBOARD_KEY));
+  writing = next.catch(() => undefined);
+  return next;
+}
