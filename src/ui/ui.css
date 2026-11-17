@@ -20,6 +20,8 @@
 .mark-live { animation: mark-breathe 1.6s var(--ease-out) infinite; }
 @keyframes mark-breathe { 50% { opacity: 0.35; } }
 
+.wordmark { margin: 0; display: inline-flex; align-items: center; gap: 10px; font-size: var(--wordmark-size, 18px); font-weight: 500; letter-spacing: -0.05em; line-height: 1; }
+
 .hoop { display: inline-block; flex: none; width: 1.15em; height: 1.15em; color: inherit; vertical-align: middle; }
 
 .clock { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: 0; line-height: 1; }
