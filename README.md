@@ -36,6 +36,13 @@ When Hulu changes its player, detection is fixed in one file, `src/sites/hulu.ts
 
 Halftime Show is an independent open-source project. It isn't made, endorsed or supported by Hulu. Hulu is a trademark of its owner.
 
+## Credits
+
+Quick trivia's questions are a curated subset of the [Open Trivia Database](https://opentdb.com), shared under
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). The file keeps its own licence and a note of what was
+changed: [src/shows/trivia/QUESTIONS-LICENSE.md](src/shows/trivia/QUESTIONS-LICENSE.md). The show prints the credit under
+every question. They ship inside the extension; nothing is fetched while you watch.
+
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE), except the question bank above, which stays under CC BY-SA 4.0.

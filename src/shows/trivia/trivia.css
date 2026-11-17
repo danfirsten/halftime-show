@@ -1,0 +1,44 @@
+/* Quick trivia. Tokens only: the overlay is always ink, so everything reads from the system's variables. */
+.hs-trivia { width: 100%; display: grid; justify-items: center; gap: clamp(8px, 1.8cqb, 18px); }
+.t-wrap { width: min(100%, 64cqi); display: grid; gap: clamp(8px, 1.8cqb, 18px); justify-items: start; animation: hs-fade-in var(--dur-base) var(--ease-out) both; }
+.t-n { margin: 0; }
+.t-q { margin: 0; font-size: var(--t-title); font-weight: 500; letter-spacing: -0.035em; line-height: 1.1; text-wrap: balance; }
+.t-as { display: grid; gap: clamp(6px, 1.2cqb, 12px); width: 100%; }
+.t-row { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.t-a {
+  display: inline-flex; align-items: center; gap: var(--space-3); min-width: 0; max-width: 100%; min-height: max(var(--target), 7cqb);
+  padding: var(--space-1) 22px var(--space-1) var(--space-2); border-radius: var(--r-pill); border: 1px solid var(--rule);
+  font-size: var(--t-body); font-weight: 500; line-height: 1.25; text-align: left; color: var(--fg);
+  transition: background-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), border-color var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out);
+}
+.t-a .k { border-color: currentColor; opacity: 0.8; }
+.t-a:hover:not(:disabled) { border-color: var(--muted); }
+.t-a:disabled { cursor: default; opacity: 1; }
+.t-a[data-s='right'] { background: var(--inv-bg); color: var(--inv-fg); border-color: var(--inv-bg); }
+.t-a[data-s='wrong'] { border-style: dashed; border-color: var(--fg); }
+.t-say { font-family: var(--mono); font-size: var(--t-label); color: var(--fg); white-space: nowrap; opacity: 0; transition: opacity var(--dur-quick) var(--ease-out); }
+.t-say.on { opacity: 1; }
+.t-c { margin: 0; text-align: center; }
+.t-wait { color: var(--muted); }
+
+/* A window short: the answers go two by two, filling their cells, and the line for the show's name makes way. */
+@container overlay (max-height: 559px) {
+  .t-as { grid-template-columns: 1fr 1fr; }
+  .t-row { display: block; }
+  .t-a { width: 100%; min-height: var(--target); }
+  .t-say { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .t-row { position: relative; }
+}
+@container overlay (max-height: 419px) {
+  .hs-trivia, .t-wrap { gap: var(--space-1); }
+  .t-wrap { width: 100%; }
+  .t-q { font-size: var(--t-body); line-height: 1.2; }
+  .t-a { padding-right: var(--space-3); font-size: var(--t-label); }
+  .t-as { gap: var(--space-1); }
+}
+@container overlay (max-height: 339px) {
+  .t-c, .t-n { display: none; }
+}
+@container overlay (max-width: 359px) {
+  .t-as { grid-template-columns: 1fr; }
+}
