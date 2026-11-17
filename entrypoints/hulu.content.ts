@@ -82,6 +82,7 @@ export default defineContentScript({
         overlayFor(video).open(seconds);
         clearInterval(updates);
         updates = setInterval(() => overlay?.update(detector.verdict().secondsLeft), UPDATE_MS);
+        if (!port) connect();
         clearInterval(pings);
         pings = setInterval(() => port?.postMessage({ type: PING }), PING_MS);
       },
@@ -94,8 +95,9 @@ export default defineContentScript({
 
     const detector = detectHulu(document, (event) => control.detected(event));
 
-    // The port tells the background this page is alive. If it drops (the worker restarted), connect again and, mid
-    // break, say so again so the tab stays muted.
+    // The port tells the background this page is alive. If it drops mid break (the worker restarted), connect again
+    // and say so again so the tab stays muted. Outside a break it waits for the next one, so an idle tab never keeps
+    // waking the worker.
     function connect() {
       if (ctx.isInvalid) return;
       try {
@@ -107,9 +109,11 @@ export default defineContentScript({
       mine.onDisconnect.addListener(() => {
         if (port !== mine) return;
         port = null;
+        if (!control.inBreak()) return;
         ctx.setTimeout(() => {
+          if (port || !control.inBreak()) return;
           connect();
-          if (control.inBreak()) send({ type: BREAK_START }).catch(() => undefined);
+          send({ type: BREAK_START }).catch(() => undefined);
         }, RECONNECT_MS);
       });
     }

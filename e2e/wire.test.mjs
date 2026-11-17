@@ -87,6 +87,22 @@ test('a break mutes within 500 ms and then opens the overlay; its end unmutes wi
   });
 });
 
+test("the overlay's corner shows ad time dodged today and this week", async () => {
+  await withExtension(async ({ context, worker, origin }) => {
+    const [today, yesterday] = await worker.evaluate(() => {
+      const key = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const now = new Date();
+      return [key(now), key(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1))];
+    });
+    await worker.evaluate((board) => chrome.storage.local.set({ scoreboard: board }), { [today]: 870, [yesterday]: 600 });
+    const page = await openFixture(context, origin, { breaks: '1:30' });
+    await page.locator('.hs.is-open').waitFor({ timeout: 10000 });
+    const corner = page.locator(`${OVERLAY_SELECTOR} .hs-score`);
+    await corner.getByText('Dodged today 14:30').waitFor({ timeout: 5000 });
+    await corner.getByText('This week 24:30').waitFor({ timeout: 5000 });
+  });
+});
+
 test('a tab the viewer muted stays muted through and after the break', async () => {
   await withExtension(async ({ context, worker, origin }) => {
     const page = await openFixture(context, origin, { breaks: '2:2' });
