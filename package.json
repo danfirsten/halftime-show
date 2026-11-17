@@ -1,7 +1,7 @@
 {
   "name": "halftime-show",
   "version": "0.1.0",
-  "description": "Mutes the ad break and puts something better on top. A browser extension for Hulu in Chrome and Firefox.",
+  "description": "Mutes the ad break and puts something better on top. A browser extension for Hulu in Chrome, Firefox and Safari.",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "e2e": "npm run build && node --test e2e/*.test.mjs",
-    "start": "serve .output/chrome-mv3 -l ${PORT:-3000} --no-clipboard"
+    "start": "serve .output/chrome-mv3 -l ${PORT:-3000} --no-clipboard",
+    "build:safari": "wxt build -b safari"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
