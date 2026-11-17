@@ -1,0 +1,7 @@
+/* Something to look at: a canvas of ink marks over the whole stage. Tokens only; the overlay is always ink. */
+.look { position: absolute; inset: 0; color: var(--fg); }
+.look-cv, .look-new { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.look-new { opacity: 0; transition: opacity var(--dur-base) var(--ease-out); }
+.look-new.on { opacity: 1; }
+.look-note { position: absolute; right: 0; bottom: 0; margin: 0; font-family: var(--mono); font-size: var(--t-label); letter-spacing: 0.04em; color: var(--muted); line-height: 1.3; }
+@container overlay (max-width: 559px) { .look-note { display: none; } }
