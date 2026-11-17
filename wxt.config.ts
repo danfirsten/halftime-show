@@ -17,6 +17,13 @@ export default defineConfig({
     description: 'Mutes the ad break and puts something better on top.',
     permissions: ['tabs', 'storage'],
     host_permissions: ['*://*.hulu.com/*'],
+    commands: {
+      // OVERRIDE_COMMAND in src/lib/messages.ts.
+      'toggle-ad': {
+        suggested_key: { default: 'Alt+Shift+A' },
+        description: "This is an ad, or this isn't",
+      },
+    },
   },
   hooks: {
     // The overlay stage (entrypoints/overlay-stage/) runs the overlay on the stand-in player: dev and test builds only.
